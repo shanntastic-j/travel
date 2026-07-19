@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shannon's Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.1/plotly.min.js"></script>
+<style>
+  :root{
+    --parchment:#f6f7f9;
+    --parchment-2:#dce6ea;
+    --ink:#232a29;
+    --muted:#6f736b;
+    --teal:#1f7a70;
+    --teal-deep:#17544f;
+    --oxblood:#7a3f74;
+    --gold:#35618f;
+    --line:#d7d3c6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--parchment);color:var(--ink);
+    font-family:"Inter",system-ui,sans-serif;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 64px;}
+  .eyebrow{
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--teal-deep);font-weight:600;margin:0 0 6px;
+  }
+  h1{
+    font-family:"Fraunces",Georgia,serif;font-weight:500;
+    font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-.01em;
+    margin:0 0 10px;color:var(--teal-deep);
+  }
+  h1 em{font-style:italic;color:var(--oxblood);}
+  .lede{font-size:16px;color:var(--muted);max-width:60ch;margin:0 0 24px;}
+  .stats{
+    display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);margin:0 0 22px;
+  }
+  .stat{flex:1 1 130px;padding:14px 16px 12px;border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat .n{font-family:"Fraunces",serif;font-size:30px;font-weight:600;color:var(--ink);line-height:1;}
+  .stat .l{font-size:12px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-top:5px;}
+  #map{
+    width:100%;height:560px;background:var(--parchment-2);
+    border:1px solid var(--line);border-radius:4px;overflow:hidden;
+  }
+  .maphint{font-size:12.5px;color:var(--muted);margin:8px 2px 30px;font-style:italic;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:26px 40px;}
+  @media(max-width:760px){.grid{grid-template-columns:1fr;}}
+  .panel h2{
+    font-family:"Fraunces",serif;font-weight:500;font-size:22px;
+    margin:0 0 4px;color:var(--teal-deep);
+  }
+  .panel .sub{font-size:12.5px;color:var(--muted);margin:0 0 14px;}
+  .region{margin-bottom:14px;}
+  .region .rh{
+    font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold);font-weight:600;margin-bottom:4px;
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{
+    font-size:13px;padding:3px 10px;border:1px solid #d3dcdc;
+    border-radius:100px;background:#eaf0f0;color:var(--ink);
+  }
+  .chip.nat{border-color:#bcd3c6;background:#eef5ef;}
+  .sugg{list-style:none;margin:0;padding:0;counter-reset:s;}
+  .sugg li{
+    padding:12px 0 12px 40px;border-top:1px solid var(--line);position:relative;
+  }
+  .sugg li:first-child{border-top:none;}
+  .sugg li::before{
+    counter-increment:s;content:counter(s,decimal-leading-zero);
+    position:absolute;left:0;top:12px;font-family:"Fraunces",serif;
+    font-size:15px;color:var(--oxblood);font-weight:600;
+  }
+  .sugg .place{font-weight:600;font-size:15px;}
+  .sugg .why{font-size:13.5px;color:var(--muted);margin-top:2px;}
+  .upnext{
+    border:1px solid var(--oxblood);border-left-width:4px;border-radius:4px;
+    background:rgba(122,63,116,.06);padding:12px 14px;margin:0 0 16px;
+  }
+  .upnext .tag{
+    display:inline-block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    font-weight:600;color:var(--oxblood);margin-bottom:5px;
+  }
+  .upnext .place{font-weight:600;font-size:15.5px;}
+  .upnext .why{font-size:13.5px;color:var(--muted);margin-top:2px;}
+  .foot{
+    margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:13.5px;color:var(--muted);
+  }
+  .foot strong{color:var(--ink);font-weight:600;}
+
+  .log{margin-top:42px;}
+  .log h2{font-family:"Fraunces",serif;font-weight:500;font-size:24px;color:var(--teal-deep);margin:0 0 4px;}
+  .log .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:#fff;}
+  .log table{border-collapse:collapse;width:100%;font-size:13px;min-width:660px;}
+  .log th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line);}
+  .log td{padding:9px 14px;border-bottom:1px solid #e8e9ec;vertical-align:top;}
+  .log tbody tr:last-child td{border-bottom:none;}
+  .log .dt{white-space:nowrap;color:var(--ink);}
+  .log .pl{font-weight:500;}
+  .log .pu{color:var(--muted);}
+  .log tr.yr td{background:#e7eef0;font-family:"Fraunces",serif;font-weight:600;
+    color:var(--teal-deep);font-size:13px;padding:7px 14px;border-bottom:1px solid var(--line);}
+  .pill{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.04em;
+    text-transform:uppercase;padding:2px 8px;border-radius:100px;white-space:nowrap;}
+  .pill.work{color:#35618f;background:rgba(53,97,143,.12);}
+  .pill.vac{color:#1f7a70;background:rgba(31,122,112,.12);}
+  .museums{margin-top:36px;}
+  .museums h2{font-family:"Fraunces",serif;font-weight:500;font-size:24px;color:var(--teal-deep);margin:0 0 4px;}
+  .museums .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
+  .mgroup{margin-bottom:16px;}
+  .mgroup .rh{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin-bottom:7px;}
+  .chip.been{border-color:#9fcac4;background:#e5f1ef;color:var(--ink);}
+  .chip.want{border-color:#cbb0c6;background:#f1e6ef;color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">2001 – 2026 · a travel log</p>
+  <h1>Everywhere so far,<br>and where to go <em>next</em></h1>
+  <p class="lede">Twenty-five years of trips, plotted. Teal marks the ground already covered; the plum stars are a short list of places to round it out.</p>
+
+      <div class="stats">
+    <div class="stat"><div class="n">26</div><div class="l">Countries</div></div>
+    <div class="stat"><div class="n">37<span style="font-size:16px;color:var(--muted)">+DC</span></div><div class="l">US states</div></div>
+    <div class="stat"><div class="n">519,091</div><div class="l">Miles traveled</div></div>
+    <div class="stat"><div class="n">676</div><div class="l">Days away</div></div>
+    <div class="stat"><div class="n">146</div><div class="l">Logged trips</div></div>
+  </div>
+
+  <div id="map"></div>
+  <p class="maphint">Scroll to zoom, drag to pan. Toggle any layer in the legend. Hover a point for detail.</p>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Ground covered</h2>
+      <p class="sub">Countries by continent, plus the US footprint.</p>
+
+      <div class="region">
+        <div class="rh">Europe</div>
+        <div class="chips">
+          <span class="chip">Spain</span>
+          <span class="chip">France</span>
+          <span class="chip">United Kingdom</span>
+          <span class="chip">Italy</span>
+          <span class="chip">Vatican City</span>
+          <span class="chip">Greece</span>
+          <span class="chip">Netherlands</span>
+          <span class="chip">Germany</span>
+          <span class="chip">Austria</span>
+          <span class="chip">Hungary</span>
+        </div>
+      </div>
+      <div class="region">
+        <div class="rh">Asia &amp; Oceania</div>
+        <div class="chips">
+          <span class="chip">Thailand</span>
+          <span class="chip">Indonesia</span>
+          <span class="chip">Singapore</span>
+          <span class="chip">Australia</span>
+        </div>
+      </div>
+      <div class="region">
+        <div class="rh">The Americas &amp; Caribbean</div>
+        <div class="chips">
+          <span class="chip">United States</span>
+          <span class="chip">Mexico</span>
+          <span class="chip">Canada</span>
+          <span class="chip">Costa Rica</span>
+          <span class="chip">Belize</span>
+          <span class="chip">Colombia</span>
+          <span class="chip">Jamaica</span>
+          <span class="chip">Cayman Islands</span>
+          <span class="chip">Antigua &amp; Barbuda</span>
+          <span class="chip">St. Kitts &amp; Nevis</span>
+          <span class="chip">St. Lucia</span>
+          <span class="chip">Barbados</span>
+        </div>
+      </div>
+      <div class="region">
+        <div class="rh">US states &amp; territories (40)</div>
+        <div class="chips">
+          <span class="chip">AK</span>
+          <span class="chip">AZ</span>
+          <span class="chip">AR</span>
+          <span class="chip">CA</span>
+          <span class="chip">CT</span>
+          <span class="chip">FL</span>
+          <span class="chip">GA</span>
+          <span class="chip">HI</span>
+          <span class="chip">IN</span>
+          <span class="chip">KS</span>
+          <span class="chip">LA</span>
+          <span class="chip">ME</span>
+          <span class="chip">MD</span>
+          <span class="chip">MA</span>
+          <span class="chip">MS</span>
+          <span class="chip">MO</span>
+          <span class="chip">NE</span>
+          <span class="chip">NV</span>
+          <span class="chip">NH</span>
+          <span class="chip">NJ</span>
+          <span class="chip">NM</span>
+          <span class="chip">NY</span>
+          <span class="chip">NC</span>
+          <span class="chip">OK</span>
+          <span class="chip">OR</span>
+          <span class="chip">PA</span>
+          <span class="chip">RI</span>
+          <span class="chip">SC</span>
+          <span class="chip">TN</span>
+          <span class="chip">TX</span>
+          <span class="chip">UT</span>
+          <span class="chip">VT</span>
+          <span class="chip">VA</span>
+          <span class="chip">WA</span>
+          <span class="chip">WV</span>
+          <span class="chip">WI</span>
+          <span class="chip">WY</span>
+          <span class="chip">DC</span>
+          <span class="chip">Puerto Rico</span>
+          <span class="chip">US Virgin Is.</span>
+        </div>
+      </div>
+      <div class="region">
+        <div class="rh">States still to go (12)</div>
+        <div class="chips">
+          <span class="chip want">Alabama</span>
+          <span class="chip want">Colorado</span>
+          <span class="chip want">Delaware</span>
+          <span class="chip want">Idaho</span>
+          <span class="chip want">Illinois</span>
+          <span class="chip want">Iowa</span>
+          <span class="chip want">Kentucky</span>
+          <span class="chip want">Michigan</span>
+          <span class="chip want">Minnesota</span>
+          <span class="chip want">North Dakota</span>
+          <span class="chip want">Ohio</span>
+          <span class="chip want">South Dakota</span>
+        </div>
+      </div>
+      <div class="region">
+        <div class="rh">Major natural areas</div>
+        <div class="chips">
+          <span class="chip nat">Denali</span><span class="chip nat">Kenai Fjords</span><span class="chip nat">Inside Passage</span>
+          <span class="chip nat">Grand Teton</span><span class="chip nat">Yellowstone</span><span class="chip nat">Big Bend</span><span class="chip nat">White Sands</span>
+          <span class="chip nat">Carlsbad Caverns</span><span class="chip nat">Ozarks</span>
+          <span class="chip nat">Monteverde Cloud Forest</span><span class="chip nat">Komodo</span>
+          <span class="chip nat">Belize Barrier Reef</span><span class="chip nat">Galveston Bay</span>
+          <span class="chip nat">Molokini Crater</span><span class="chip nat">Beavers Bend</span>
+          <span class="chip nat">Phang Nga Bay</span><span class="chip nat">Parque Arví</span>
+          <span class="chip nat">Henry Cowell Redwoods</span><span class="chip nat">Red Rock Canyon</span><span class="chip nat">Muir Woods</span><span class="chip nat">Acadia NP</span>
+        </div>
+      </div>
+      <div class="region">
+        <div class="rh">Great art museums — been (13)</div>
+        <div class="chips">
+          <span class="chip been">Prado — Madrid</span>
+          <span class="chip been">Reina Sofía — Madrid</span>
+          <span class="chip been">Rijksmuseum — Amsterdam</span>
+          <span class="chip been">Van Gogh Museum — Amsterdam</span>
+          <span class="chip been">Vatican Museums — Rome</span>
+          <span class="chip been">The National Gallery — London</span>
+          <span class="chip been">Tate Modern — London</span>
+          <span class="chip been">Kunsthistorisches — Vienna</span>
+          <span class="chip been">The Met — New York</span>
+          <span class="chip been">MoMA — New York</span>
+          <span class="chip been">MFA — Boston</span>
+          <span class="chip been">National Gallery of Art — Washington, DC</span>
+          <span class="chip been">The Getty — Los Angeles</span>
+        </div>
+        <div class="rh" style="margin-top:10px">Art museums on the list (8)</div>
+        <div class="chips">
+          <span class="chip want">Louvre — Paris</span>
+          <span class="chip want">Musée d'Orsay — Paris</span>
+          <span class="chip want">Uffizi — Florence</span>
+          <span class="chip want">Picasso Museum — Barcelona</span>
+          <span class="chip want">Guggenheim Bilbao — Bilbao</span>
+          <span class="chip want">The Hermitage — St. Petersburg</span>
+          <span class="chip want">Art Institute — Chicago</span>
+          <span class="chip want">Tokyo National Museum — Tokyo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Round it out</h2>
+      <p class="sub">One trip planned, plus ten more on the list.</p>
+      <div class="upnext">
+        <span class="tag">Planned · Feb 2027</span>
+        <div class="place">Oslo &amp; Tromsø, Norway</div>
+        <div class="why">Northern lights, coastal seafood, and Nordic design.</div>
+      </div>
+      <ol class="sugg">
+        <li><div class="place">Kyoto &amp; Tokyo, Japan</div><div class="why">Temples, gardens, and seafood.</div></li>
+        <li><div class="place">Copenhagen, Denmark</div><div class="why">New Nordic dining and design.</div></li>
+        <li><div class="place">Marrakech &amp; the Atlas, Morocco</div><div class="why">Riads, souks, and mountains nearby.</div></li>
+        <li><div class="place">Moab — Arches &amp; Zion, Utah</div><div class="why">Red-rock national parks.</div></li>
+        <li><div class="place">Sedona, Arizona</div><div class="why">Desert canyons; pairs with the Utah parks.</div></li>
+        <li><div class="place">Nashville → the Smokies → Asheville <span style="color:var(--oxblood);font-size:12px">RV route</span></div><div class="why">Music, a national park, and mountain towns in one drive.</div></li>
+        <li><div class="place">Mexico City</div><div class="why">Museums, markets, and a great food scene.</div></li>
+        <li><div class="place">Cape Town + Kruger safari, South Africa</div><div class="why">Coastline, safari, and exceptional birding.</div></li>
+        <li><div class="place">Oregon Coast &amp; the PNW <span style="color:var(--oxblood);font-size:12px">RV route</span></div><div class="why">Highway 101 — coastal towns and seafood.</div></li>
+        <li><div class="place">Coastal Maine &amp; Acadia <span style="color:var(--oxblood);font-size:12px">RV route</span></div><div class="why">Lobster shacks and East Coast birding.</div></li>
+      </ol>
+    </div>
+  </div>
+
+  <section class="log">
+    <h2>Every trip, in order</h2>
+    <p class="sub">All 146 entries — 81 work, 65 personal.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Dates</th><th>Type</th><th>Place</th><th>Category</th></tr></thead>
+        <tbody>
+      <tr class="yr"><td colspan="4">2001</td></tr>
+      <tr><td class="dt">Jun 17–18, 2001</td><td><span class="pill vac">Vacation</span></td><td class="pl">Houston, TX</td><td class="pu">Weekend trip</td></tr>
+      <tr><td class="dt">Oct 31 – Nov 2, 2001</td><td><span class="pill vac">Vacation</span></td><td class="pl">New Orleans, LA</td><td class="pu">Halloween getaway</td></tr>
+      <tr class="yr"><td colspan="4">2002</td></tr>
+      <tr><td class="dt">Jan 19–27, 2002</td><td><span class="pill vac">Vacation</span></td><td class="pl">Kauai and Maui, HI</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">May 30 – Jun 28, 2002</td><td><span class="pill vac">Vacation</span></td><td class="pl">Cape Cod, MA</td><td class="pu">Family visit</td></tr>
+      <tr><td class="dt">Jul 31, 2002</td><td><span class="pill work">Work</span></td><td class="pl">Grand Cayman and Cozumel, Mexico</td><td class="pu">Company event</td></tr>
+      <tr class="yr"><td colspan="4">2003</td></tr>
+      <tr><td class="dt">Jun 28 – Jul 5, 2003</td><td><span class="pill vac">Vacation</span></td><td class="pl">Cape Cod, MA</td><td class="pu">Family visit</td></tr>
+      <tr class="yr"><td colspan="4">2004</td></tr>
+      <tr><td class="dt">Apr 12, 2004</td><td><span class="pill work">Work</span></td><td class="pl">San Francisco, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Sep 11–17, 2004</td><td><span class="pill work">Work</span></td><td class="pl">San Francisco, CA</td><td class="pu">Business meeting</td></tr>
+      <tr class="yr"><td colspan="4">2007</td></tr>
+      <tr><td class="dt">Nov 12–18, 2007</td><td><span class="pill vac">Vacation</span></td><td class="pl">Portland, OR</td><td class="pu">Getaway</td></tr>
+      <tr class="yr"><td colspan="4">2008</td></tr>
+      <tr><td class="dt">Jun 14–21, 2008</td><td><span class="pill vac">Vacation</span></td><td class="pl">Sayulita, Mexico</td><td class="pu">Family trip</td></tr>
+      <tr class="yr"><td colspan="4">2009</td></tr>
+      <tr><td class="dt">Apr 2–6, 2009</td><td><span class="pill vac">Vacation</span></td><td class="pl">New Orleans, LA</td><td class="pu">Wedding</td></tr>
+      <tr><td class="dt">Oct 22–28, 2009</td><td><span class="pill work">Work</span></td><td class="pl">Montpellier, France</td><td class="pu">Training</td></tr>
+      <tr class="yr"><td colspan="4">2011</td></tr>
+      <tr><td class="dt">Nov 24–25, 2011</td><td><span class="pill vac">Vacation</span></td><td class="pl">Oklahoma City area, OK</td><td class="pu">Family visit</td></tr>
+      <tr class="yr"><td colspan="4">2012</td></tr>
+      <tr><td class="dt">Feb 25–28, 2012</td><td><span class="pill vac">Vacation</span></td><td class="pl">Omaha, NE</td><td class="pu">Family visit</td></tr>
+      <tr><td class="dt">Mar 29–31, 2012</td><td><span class="pill vac">Vacation</span></td><td class="pl">Portland, OR</td><td class="pu">Getaway</td></tr>
+      <tr class="yr"><td colspan="4">2013</td></tr>
+      <tr><td class="dt">Jun 20–29, 2013</td><td><span class="pill vac">Vacation</span></td><td class="pl">Anchorage, Denali, Seward, Alaska</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Jul 26–28, 2013</td><td><span class="pill vac">Vacation</span></td><td class="pl">New Braunfels, TX</td><td class="pu">Family trip</td></tr>
+      <tr class="yr"><td colspan="4">2014</td></tr>
+      <tr><td class="dt">Jan 30 – Feb 27, 2014</td><td><span class="pill work">Work</span></td><td class="pl">Yogyakarta, Indonesia</td><td class="pu">Training</td></tr>
+      <tr><td class="dt">Feb 28 – Mar 6, 2014</td><td><span class="pill vac">Vacation</span></td><td class="pl">Komodo, Rinca, Bali, Indonesia</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Apr 12–13, 2014</td><td><span class="pill vac">Vacation</span></td><td class="pl">Trinity, TX</td><td class="pu">Camping trip</td></tr>
+      <tr><td class="dt">Jun 22–29, 2014</td><td><span class="pill vac">Vacation</span></td><td class="pl">Western Caribbean cruise (Cozumel, Mexico; George Town, Grand Cayman; Falmouth, Jamaica)</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Oct 10–12, 2014</td><td><span class="pill vac">Vacation</span></td><td class="pl">Houston, TX</td><td class="pu">Getaway</td></tr>
+      <tr class="yr"><td colspan="4">2015</td></tr>
+      <tr><td class="dt">Mar 14–18, 2015</td><td><span class="pill vac">Vacation</span></td><td class="pl">Carlsbad and White Sands, NM</td><td class="pu">Road trip</td></tr>
+      <tr><td class="dt">Jun 20–26, 2015</td><td><span class="pill vac">Vacation</span></td><td class="pl">South Padre Island, TX</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Jul 19–21, 2015</td><td><span class="pill work">Work</span></td><td class="pl">Armonk, NY</td><td class="pu">Training</td></tr>
+      <tr><td class="dt">Aug 7–13, 2015</td><td><span class="pill work">Work</span></td><td class="pl">Sydney, Australia</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Nov 15–20, 2015</td><td><span class="pill vac">Vacation</span></td><td class="pl">Jamaica</td><td class="pu">Birthday trip</td></tr>
+      <tr class="yr"><td colspan="4">2016</td></tr>
+      <tr><td class="dt">Feb 20–25, 2016</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas, NV</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Mar 9, 2016</td><td><span class="pill work">Work</span></td><td class="pl">Phoenix and Tempe, AZ</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Mar 15–17, 2016</td><td><span class="pill vac">Vacation</span></td><td class="pl">Oklahoma</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Apr 1–4, 2016</td><td><span class="pill vac">Vacation</span></td><td class="pl">Tucson, AZ</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Apr 15–23, 2016</td><td><span class="pill work">Work</span></td><td class="pl">Madrid, Spain</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Jun 1–3, 2016</td><td><span class="pill work">Work</span></td><td class="pl">San Francisco and Daly City, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Jun 21–29, 2016</td><td><span class="pill vac">Vacation</span></td><td class="pl">Placencia, Belize</td><td class="pu">Family trip</td></tr>
+      <tr class="yr"><td colspan="4">2017</td></tr>
+      <tr><td class="dt">Jan 14–16, 2017</td><td><span class="pill vac">Vacation</span></td><td class="pl">El Paso, TX</td><td class="pu">Family visit</td></tr>
+      <tr><td class="dt">Jan 26 – Feb 4, 2017</td><td><span class="pill work">Work</span></td><td class="pl">Madrid and Toledo, Spain</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Feb 15–25, 2017</td><td><span class="pill work">Work</span></td><td class="pl">Singapore</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Mar 15–25, 2017</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas, NV</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">May 6–7, 2017</td><td><span class="pill vac">Vacation</span></td><td class="pl">Galveston and La Grange, TX</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Jun 3–10, 2017</td><td><span class="pill vac">Vacation</span></td><td class="pl">Monteverde, Costa Rica</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Oct 7–15, 2017</td><td><span class="pill work">Work</span></td><td class="pl">Berlin, Germany</td><td class="pu">Conference</td></tr>
+      <tr class="yr"><td colspan="4">2018</td></tr>
+      <tr><td class="dt">Jan 27 – Feb 2, 2018</td><td><span class="pill work">Work</span></td><td class="pl">Madrid, Spain</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Feb 3–12, 2018</td><td><span class="pill work">Work</span></td><td class="pl">Bangkok, Thailand</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Feb 18–23, 2018</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas, NV</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Mar 10–14, 2018</td><td><span class="pill vac">Vacation</span></td><td class="pl">Orlando, FL</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Mar 18–23, 2018</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas, NV</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Jun 19 – Jul 3, 2018</td><td><span class="pill vac">Vacation</span></td><td class="pl">Alaskan inside passage cruise (Seattle, Vancouver, Juneau, Skagway, Ketchikan)</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Aug 25–26, 2018</td><td><span class="pill vac">Vacation</span></td><td class="pl">Allen, TX</td><td class="pu">Personal trip</td></tr>
+      <tr class="yr"><td colspan="4">2019</td></tr>
+      <tr><td class="dt">Jan 20–25, 2019</td><td><span class="pill work">Work</span></td><td class="pl">New Orleans, LA</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Jan 26 – Feb 1, 2019</td><td><span class="pill work">Work</span></td><td class="pl">Madrid, Spain</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Feb 9–17, 2019</td><td><span class="pill work">Work</span></td><td class="pl">San Francisco, Napa, Muir Woods, CA</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Feb 23 – Mar 1, 2019</td><td><span class="pill work">Work</span></td><td class="pl">Singapore</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Feb 28 – Mar 8, 2019</td><td><span class="pill vac">Vacation</span></td><td class="pl">Chiang Mai and Phuket, Thailand</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Apr 11, 2019</td><td><span class="pill work">Work</span></td><td class="pl">Durham, NC</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">May 6–7, 2019</td><td><span class="pill work">Work</span></td><td class="pl">Dallas, TX</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Jun 22–30, 2019</td><td><span class="pill vac">Vacation</span></td><td class="pl">Eastern Caribbean cruise (San Juan, Puerto Rico; Charlotte Amalie, St. Thomas; Basseterre, St. Kitts; St. John&#x27;s, Antigua; Castries, St. Lucia; Bridgetown, Barbados)</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Jul 5–8, 2019</td><td><span class="pill vac">Vacation</span></td><td class="pl">Jupiter, FL</td><td class="pu">Wedding</td></tr>
+      <tr><td class="dt">Aug 19–22, 2019</td><td><span class="pill work">Work</span></td><td class="pl">New York, NY</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Sep 2–5, 2019</td><td><span class="pill work">Work</span></td><td class="pl">New York, NY</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Sep 20–27, 2019</td><td><span class="pill work">Work</span></td><td class="pl">London, Bath, Windsor, Stonehenge</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Oct 8–10, 2019</td><td><span class="pill work">Work</span></td><td class="pl">Los Angeles and Rancho Palos Verdes, CA</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Oct 15–18, 2019</td><td><span class="pill work">Work</span></td><td class="pl">New York, NY</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Oct 20–25, 2019</td><td><span class="pill work">Work</span></td><td class="pl">Orlando, FL</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Nov 1–3, 2019</td><td><span class="pill vac">Vacation</span></td><td class="pl">New Braunfels, TX</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Nov 8–11, 2019</td><td><span class="pill vac">Vacation</span></td><td class="pl">Oklahoma City, OK</td><td class="pu">Family visit</td></tr>
+      <tr><td class="dt">Nov 18–24, 2019</td><td><span class="pill work">Work</span></td><td class="pl">San Francisco, CA</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Dec 4–5, 2019</td><td><span class="pill work">Work</span></td><td class="pl">New York, NY</td><td class="pu">Conference</td></tr>
+      <tr class="yr"><td colspan="4">2020</td></tr>
+      <tr><td class="dt">Jan 23 – Feb 2, 2020</td><td><span class="pill work">Work</span></td><td class="pl">Vienna, Austria and Budapest, Hungary</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Feb 16–20, 2020</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas, NV</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Mar 16–19, 2020</td><td><span class="pill vac">Vacation</span></td><td class="pl">Big Cedar Lodge, MO</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">May 29–31, 2020</td><td><span class="pill vac">Vacation</span></td><td class="pl">Marathon, Marfa, Fort Davis, Alpine, TX</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Aug 1–5, 2020</td><td><span class="pill vac">Vacation</span></td><td class="pl">Port Aransas and Corpus Christi, TX</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Nov 6–8, 2020</td><td><span class="pill vac">Vacation</span></td><td class="pl">Fredericksburg, TX</td><td class="pu">Getaway</td></tr>
+      <tr class="yr"><td colspan="4">2021</td></tr>
+      <tr><td class="dt">Mar 12–15, 2021</td><td><span class="pill vac">Vacation</span></td><td class="pl">Kerrville, TX</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Jun 13–16, 2021</td><td><span class="pill vac">Vacation</span></td><td class="pl">South Padre Island and Port Isabel, TX</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Jul 31, 2021</td><td><span class="pill vac">Vacation</span></td><td class="pl">El Campo, TX</td><td class="pu">Personal trip</td></tr>
+      <tr><td class="dt">Nov 8–11, 2021</td><td><span class="pill vac">Vacation</span></td><td class="pl">Marfa, TX</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Nov 16–18, 2021</td><td><span class="pill work">Work</span></td><td class="pl">San Francisco, CA</td><td class="pu">Business meeting</td></tr>
+      <tr class="yr"><td colspan="4">2022</td></tr>
+      <tr><td class="dt">Mar 13–18, 2022</td><td><span class="pill vac">Vacation</span></td><td class="pl">Broken Bow, OK</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Apr 10–15, 2022</td><td><span class="pill work">Work</span></td><td class="pl">Seattle, WA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Apr 17–24, 2022</td><td><span class="pill work">Work</span></td><td class="pl">Medellín, Colombia</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Jun 10–12, 2022</td><td><span class="pill vac">Vacation</span></td><td class="pl">San Francisco, CA</td><td class="pu">Memorial</td></tr>
+      <tr><td class="dt">Jun 17–24, 2022</td><td><span class="pill vac">Vacation</span></td><td class="pl">Port Aransas, TX</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Jul 16–23, 2022</td><td><span class="pill work">Work</span></td><td class="pl">Berlin, Germany</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Jul 27 – Aug 2, 2022</td><td><span class="pill vac">Vacation</span></td><td class="pl">Maui, HI</td><td class="pu">Wedding</td></tr>
+      <tr><td class="dt">Aug 15–17, 2022</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas, NV</td><td class="pu">Company event</td></tr>
+      <tr><td class="dt">Sep 5–10, 2022</td><td><span class="pill work">Work</span></td><td class="pl">Barcelona, Spain</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Oct 15–23, 2022</td><td><span class="pill work">Work</span></td><td class="pl">Madrid, Mallorca, Segovia, Ávila, Spain</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Nov 20–25, 2022</td><td><span class="pill vac">Vacation</span></td><td class="pl">Oklahoma City, OK</td><td class="pu">Family visit</td></tr>
+      <tr><td class="dt">Nov 27 – Dec 1, 2022</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas, NV</td><td class="pu">Conference</td></tr>
+      <tr class="yr"><td colspan="4">2023</td></tr>
+      <tr><td class="dt">Jan 15–20, 2023</td><td><span class="pill work">Work</span></td><td class="pl">San Diego, CA</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Jan 29 – Feb 3, 2023</td><td><span class="pill work">Work</span></td><td class="pl">Madrid, Spain</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Feb 16–21, 2023</td><td><span class="pill vac">Vacation</span></td><td class="pl">Boston, MA</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Apr 16–20, 2023</td><td><span class="pill vac">Vacation</span></td><td class="pl">Washington, DC and New York, NY</td><td class="pu">College visits</td></tr>
+      <tr><td class="dt">Apr 25–27, 2023</td><td><span class="pill work">Work</span></td><td class="pl">Milwaukee, WI</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">May 14–20, 2023</td><td><span class="pill work">Work</span></td><td class="pl">London and Wimbledon, UK</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Jun 20–24, 2023</td><td><span class="pill vac">Vacation</span></td><td class="pl">Texas</td><td class="pu">Personal trip</td></tr>
+      <tr><td class="dt">Jun 24 – Jul 2, 2023</td><td><span class="pill vac">Vacation</span></td><td class="pl">Martha&#x27;s Vineyard, MA</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Jul 23–27, 2023</td><td><span class="pill work">Work</span></td><td class="pl">Indianapolis, IN</td><td class="pu">Company event</td></tr>
+      <tr><td class="dt">Aug 5–8, 2023</td><td><span class="pill vac">Vacation</span></td><td class="pl">Jackson Hole, WY</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Oct 11–12, 2023</td><td><span class="pill work">Work</span></td><td class="pl">New York, NY</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Nov 27 – Dec 1, 2023</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas, NV</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Dec 4–6, 2023</td><td><span class="pill work">Work</span></td><td class="pl">Boston, MA</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Dec 12–17, 2023</td><td><span class="pill vac">Vacation</span></td><td class="pl">Oklahoma City, OK</td><td class="pu">Graduation</td></tr>
+      <tr class="yr"><td colspan="4">2024</td></tr>
+      <tr><td class="dt">Jan 20–27, 2024</td><td><span class="pill work">Work</span></td><td class="pl">Orlando, FL</td><td class="pu">Sales kickoff</td></tr>
+      <tr><td class="dt">Mar 2–9, 2024</td><td><span class="pill work">Work</span></td><td class="pl">London and Wimbledon, UK</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Mar 13–14, 2024</td><td><span class="pill work">Work</span></td><td class="pl">Boston, MA</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Mar 19–21, 2024</td><td><span class="pill work">Work</span></td><td class="pl">Dallas, TX</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Apr 5–15, 2024</td><td><span class="pill vac">Vacation</span></td><td class="pl">Phuket, Thailand</td><td class="pu">Company event</td></tr>
+      <tr><td class="dt">Jun 1–7, 2024</td><td><span class="pill work">Work</span></td><td class="pl">London and Windsor, UK</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Jun 18–23, 2024</td><td><span class="pill vac">Vacation</span></td><td class="pl">Rome, Italy</td><td class="pu">Graduation</td></tr>
+      <tr><td class="dt">Jun 24–27, 2024</td><td><span class="pill vac">Vacation</span></td><td class="pl">Athens, Greece</td><td class="pu">Graduation</td></tr>
+      <tr><td class="dt">Jul 7–11, 2024</td><td><span class="pill work">Work</span></td><td class="pl">New York, NY</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Sep 26 – Oct 2, 2024</td><td><span class="pill work">Work</span></td><td class="pl">Amsterdam, Netherlands</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Nov 3–7, 2024</td><td><span class="pill vac">Vacation</span></td><td class="pl">Tijuana, Mexico</td><td class="pu">Personal trip</td></tr>
+      <tr><td class="dt">Dec 26, 2024 – Jan 1, 2025</td><td><span class="pill vac">Vacation</span></td><td class="pl">Oklahoma City, OK</td><td class="pu">Family visit</td></tr>
+      <tr class="yr"><td colspan="4">2025</td></tr>
+      <tr><td class="dt">Jan 27–29, 2025</td><td><span class="pill work">Work</span></td><td class="pl">Milwaukee, WI</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Mar 9–11, 2025</td><td><span class="pill work">Work</span></td><td class="pl">Dallas, TX</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Mar 16–19, 2025</td><td><span class="pill vac">Vacation</span></td><td class="pl">New York, NY</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Jun 11–13, 2025</td><td><span class="pill work">Work</span></td><td class="pl">Milwaukee, WI</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Jul 31 – Aug 3, 2025</td><td><span class="pill vac">Vacation</span></td><td class="pl">Lockhart and Redwood, TX</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Sep 18–19, 2025</td><td><span class="pill work">Work</span></td><td class="pl">Milwaukee, WI</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Oct 6–7, 2025</td><td><span class="pill vac">Vacation</span></td><td class="pl">La Grange, Lockhart, Giddings, TX</td><td class="pu">Getaway</td></tr>
+      <tr><td class="dt">Oct 27–30, 2025</td><td><span class="pill work">Work</span></td><td class="pl">Santa Clara, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Nov 16–19, 2025</td><td><span class="pill work">Work</span></td><td class="pl">Houston, TX</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Dec 1–5, 2025</td><td><span class="pill work">Work</span></td><td class="pl">Barcelona, Spain</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Dec 9–12, 2025</td><td><span class="pill work">Work</span></td><td class="pl">Santa Clara, CA</td><td class="pu">Business meeting</td></tr>
+      <tr class="yr"><td colspan="4">2026</td></tr>
+      <tr><td class="dt">Jan 6–9, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Santa Clara, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Feb 9–13, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Santa Clara, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Feb 23–27, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Houston, TX</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Mar 9–10, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Dallas, TX</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Mar 10–12, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Santa Clara, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Mar 15–20, 2026</td><td><span class="pill work">Work</span></td><td class="pl">San Jose, CA</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Mar 23–27, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Orlando, FL</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Apr 21–24, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Santa Clara, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Apr 26–30, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Houston, TX</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">May 7–10, 2026</td><td><span class="pill vac">Vacation</span></td><td class="pl">Galveston, TX</td><td class="pu">Birding trip</td></tr>
+      <tr><td class="dt">May 11–12, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Houston, TX</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">May 17–22, 2026</td><td><span class="pill work">Work</span></td><td class="pl">San Jose, Carmel, Monterey, Fulton, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">May 31 – Jun 2, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Houston, TX</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Jun 14–19, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Las Vegas and Red Rock Canyon, NV</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">Jul 8–15, 2026</td><td><span class="pill vac">Vacation</span></td><td class="pl">London and Edinburgh, UK</td><td class="pu">Family trip</td></tr>
+      <tr><td class="dt">Jul 28 – Aug 1, 2026</td><td><span class="pill work">Work</span></td><td class="pl">Santa Clara, CA</td><td class="pu">Business meeting</td></tr>
+      <tr><td class="dt">Sep 3–8, 2026</td><td><span class="pill vac">Vacation</span></td><td class="pl">Bentonville and Eureka Springs, AR</td><td class="pu">Road trip</td></tr>
+      <tr><td class="dt">TBD · Oct 2026</td><td><span class="pill work">Work</span></td><td class="pl">Berlin, Germany</td><td class="pu">Conference</td></tr>
+      <tr><td class="dt">TBD · Oct 2026</td><td><span class="pill vac">Vacation</span></td><td class="pl">Prague, Czech Republic</td><td class="pu">Getaway</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+const teal="#1f7a70", oxblood="#7a3f74", natgreen="#2f8f5f";
+
+// Visited cities
+const cities = [
+  ["Portland, OR",45.52,-122.68],["Kauai, HI",22.05,-159.50],["Cape Cod, MA",41.68,-70.29],["Trinity, TX",30.95,-95.37],["South Padre Island, TX",26.11,-97.17],["Phoenix & Tempe, AZ",33.45,-112.07],["Durham, NC",35.99,-78.90],["Allen, TX",33.10,-96.67],["El Campo, TX",29.20,-96.27],["Lockhart, TX",29.88,-97.67],["La Grange, TX",29.91,-96.88],["Giddings, TX",30.18,-96.94],["Corpus Christi, TX",27.80,-97.40],["Fulton, CA",38.49,-122.77],["Logan, UT",41.74,-111.83],["New Orleans, LA",29.95,-90.07],["Omaha, NE",41.26,-95.93],
+  ["Anchorage, AK",61.22,-149.9],["Juneau, AK",58.30,-134.42],["Skagway, AK",59.46,-135.31],["Ketchikan, AK",55.34,-131.65],["New Braunfels, TX",29.70,-98.12],["El Paso, TX",31.76,-106.49],
+  ["Tucson, AZ",32.22,-110.97],["Las Vegas, NV",36.17,-115.14],["Orlando, FL",28.54,-81.38],
+  ["Jupiter, FL",26.93,-80.09],["Seattle, WA",47.61,-122.33],["New York, NY",40.71,-74.01],["Armonk, NY",41.13,-73.71],
+  ["San Francisco, CA",37.77,-122.42],["Napa, CA",38.30,-122.29],["Los Angeles, CA",33.86,-118.30],
+  ["San Diego, CA",32.72,-117.16],["Santa Clara, CA",37.35,-121.96],["San Jose, CA",37.34,-121.89],["Monterey & Carmel, CA",36.58,-121.90],
+  ["Fredericksburg, TX",30.27,-98.87],["Kerrville, TX",30.05,-99.14],["Marfa, TX",30.31,-104.02],
+  ["Broken Bow, OK",34.03,-94.74],["Oklahoma City, OK",35.47,-97.52],["Boston, MA",42.36,-71.06],
+  ["Martha's Vineyard, MA",41.39,-70.62],["Washington, DC",38.90,-77.04],["Milwaukee, WI",43.04,-87.91],
+  ["Indianapolis, IN",39.77,-86.16],["Maui, HI",20.80,-156.33],["Port Aransas, TX",27.83,-97.06],
+  ["Dallas, TX",32.78,-96.80],["Houston, TX",29.76,-95.37],["Carlsbad, NM",32.42,-104.23],
+  // international
+  ["Sayulita, Mexico",20.87,-105.44],["Tijuana, Mexico",32.51,-117.04],["Cozumel, Mexico",20.42,-86.92],["Vancouver, Canada",49.28,-123.12],
+  ["Yogyakarta, Indonesia",-7.80,110.36],["Bali, Indonesia",-8.34,115.09],["Sydney, Australia",-33.87,151.21],
+  ["Placencia, Belize",16.51,-88.37],["Madrid, Spain",40.42,-3.70],["Toledo, Spain",39.86,-4.02],
+  ["Barcelona, Spain",41.39,2.17],["Mallorca, Spain",39.57,2.65],["Segovia, Spain",40.95,-4.12],
+  ["Singapore",1.35,103.82],["Berlin, Germany",52.52,13.40],["Bangkok, Thailand",13.76,100.50],
+  ["Chiang Mai, Thailand",18.79,98.99],["Phuket, Thailand",7.88,98.39],["San Juan, Puerto Rico",18.47,-66.11],
+  ["US Virgin Islands",18.34,-64.90],["Basseterre, St. Kitts",17.30,-62.72],["St. John's, Antigua",17.12,-61.85],["Castries, St. Lucia",14.01,-60.99],["Bridgetown, Barbados",13.10,-59.62],["London, UK",51.51,-0.13],["Bath, UK",51.38,-2.36],
+  ["Edinburgh, UK",55.95,-3.19],["Vienna, Austria",48.21,16.37],["Budapest, Hungary",47.50,19.04],
+  ["Medellín, Colombia",6.24,-75.58],["Rome, Italy",41.90,12.50],
+  ["Athens, Greece",37.98,23.73],["Montpellier, France",43.61,3.88],["Amsterdam, Netherlands",52.37,4.90],["Grand Cayman",19.29,-81.36],
+  ["Montego Bay, Jamaica",18.47,-77.92]
+];
+
+// Natural areas
+const nature = [
+  ["Denali NP, AK",63.07,-151.0],["Kenai Fjords, AK",60.05,-149.90],["Inside Passage, AK",58.30,-134.42],
+  ["Grand Teton / Jackson Hole, WY",43.79,-110.68],["Yellowstone NP, WY",44.60,-110.50],["Big Bend region, TX",29.25,-103.25],
+  ["White Sands NP, NM",32.78,-106.32],["Carlsbad Caverns NP, NM",32.12,-104.59],
+  ["Ozarks / Big Cedar, MO",36.53,-93.22],["Monteverde Cloud Forest, CR",10.30,-84.81],
+  ["Komodo NP, Indonesia",-8.55,119.49],["Belize Barrier Reef",16.51,-88.37],
+  ["Galveston Bay birding, TX",29.30,-94.80],
+  ["Molokini Crater, HI",20.63,-156.50],["Beavers Bend SP, OK",34.14,-94.68],
+  ["Phang Nga Bay / Ko Tapu, Thailand",8.27,98.50],["Parque Arví, Colombia",6.28,-75.50],
+  ["Henry Cowell Redwoods, CA",37.04,-122.07],["Red Rock Canyon, NV",36.13,-115.42],["Muir Woods, CA",37.90,-122.57],["Acadia NP, ME",44.34,-68.27]
+];
+
+// Suggested
+const suggest = [
+  ["Oslo, Norway",59.91,10.75,"Planned · Feb 2027"],
+  ["Tromsø, Norway",69.65,18.96,"Planned · Feb 2027 · northern lights"],
+  ["Prague, Czech Republic",50.08,14.44,"Planned · Oct 2026 · side trip off Berlin"],
+  ["Bentonville & Eureka Springs, AR",36.37,-93.98,"Planned · Sept 2026 · Ozarks RV trip"],
+  ["Kyoto & Tokyo, Japan",35.30,136.50,"Biggest Asia gap — fish, history, ryokan character"],
+  ["Copenhagen, Denmark",55.68,12.57,"New Nordic tables + design"],
+  ["Marrakech, Morocco",31.63,-8.01,"A first footprint in Africa"],
+  ["Moab — Arches & Zion, UT",38.30,-109.90,"Red-rock parks beside Big Bend & the Tetons"],
+  ["Sedona, AZ",34.87,-111.76,"Loops with the Utah parks"],
+  ["Nashville, TN",36.16,-86.78,"RV route start · Nashville → Smokies → Asheville"],
+  ["Asheville & the Smokies, NC",35.60,-82.55,"RV route end · boutique, mountain, food-forward"],
+  ["Mexico City",19.43,-99.13,"A food capital worth the trip"],
+  ["Cape Town + Kruger, South Africa",-30.50,24.00,"Adds a continent, a park, and the birds"],
+  ["Oregon Coast & PNW, OR",44.62,-124.05,"RV route idea · Highway 101"],
+  ["Coastal Maine & Acadia, ME",44.35,-68.21,"RV route idea · a return to Acadia"]
+];
+
+const visitedCountries = ["USA","MEX","CAN","BLZ","CRI","COL","JAM","CYM","KNA","ATG","LCA","BRB","ESP","GBR",
+  "ITA","GRC","NLD","DEU","AUT","HUN","SGP","IDN","THA","AUS","FRA","VAT"];
+
+function pts(arr, hasWhy){
+  return {
+    lat:arr.map(d=>d[1]), lon:arr.map(d=>d[2]),
+    text:arr.map(d=>hasWhy?`<b>${d[0]}</b><br>${d[3]}`:`<b>${d[0]}</b>`),
+    hoverinfo:"text"
+  };
+}
+
+const base = {
+  type:"choropleth", locationmode:"ISO-3",
+  locations:visitedCountries, z:visitedCountries.map(()=>1),
+  colorscale:[[0,"#d3e4dd"],[1,"#d3e4dd"]], showscale:false,
+  marker:{line:{color:"#f3f0ea",width:.6}}, hoverinfo:"skip",
+  showlegend:false
+};
+
+const cTrace = Object.assign({type:"scattergeo",mode:"markers",name:"Been there",
+  marker:{size:6,color:teal,opacity:.9,line:{color:"#f3f0ea",width:.5}}}, pts(cities,false));
+
+const nTrace = Object.assign({type:"scattergeo",mode:"markers",name:"Natural areas",
+  marker:{size:9,color:natgreen,symbol:"triangle-up",opacity:.95,line:{color:"#f3f0ea",width:.6}}}, pts(nature,false));
+
+const sTrace = Object.assign({type:"scattergeo",mode:"markers",name:"Planned + wishlist",
+  marker:{size:15,color:oxblood,symbol:"star",line:{color:"#f3f0ea",width:.8}}}, pts(suggest,true));
+
+const layout = {
+  geo:{
+    scope:"world", projection:{type:"natural earth"},
+    showland:true, landcolor:"#dde3d6",
+    showcountries:true, countrycolor:"#b9c2bb",
+    coastlinecolor:"#aab6ad", showocean:true, oceancolor:"#dce6ea",
+    showlakes:false, bgcolor:"rgba(0,0,0,0)",
+    lataxis:{range:[-55,72]}, lonaxis:{range:[-165,175]}
+  },
+  margin:{l:0,r:0,t:0,b:0},
+  paper_bgcolor:"rgba(0,0,0,0)",
+  legend:{orientation:"h",x:.5,xanchor:"center",y:.02,
+    bgcolor:"rgba(243,240,234,.88)",bordercolor:"#d7d3c6",borderwidth:1,
+    font:{family:"Inter",size:12,color:"#232a29"}},
+  font:{family:"Inter"}
+};
+
+Plotly.newPlot("map",[base,cTrace,nTrace,sTrace],layout,
+  {responsive:true,scrollZoom:true,displayModeBar:false});
+</script>
+</body>
+</html>
