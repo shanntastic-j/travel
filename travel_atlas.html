@@ -112,7 +112,7 @@
   .analytics .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px 32px;margin-bottom:34px;}
   .analytics .stat .n{font-size:clamp(38px,4.6vw,58px);}
   .chartcard{background:var(--petrol-2);border-radius:6px;padding:20px 20px 8px;margin-bottom:18px;}
-  .chartcard h3{font-size:23px;margin-bottom:2px;}
+  .chartcard h3{font-size:23px;margin-bottom:10px;}
   .chartcard .cap{font-size:13px;color:var(--mist);margin:0 0 8px;}
   .chartrow{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
   .legend{display:flex;gap:18px;font-size:12.5px;color:var(--cream);margin:0 0 2px;}
@@ -253,7 +253,6 @@
 
     <div class="chartcard">
       <h3>Days away each year</h3>
-      <p class="cap">Work and personal travel, 2001 to now.</p>
       <div class="legend"><span><i style="background:#4c9ccf"></i>Work</span><span><i style="background:#c2923a"></i>Personal</span></div>
       <div id="an-years" style="height:320px"></div>
     </div>
@@ -261,19 +260,16 @@
     <div class="chartrow">
       <div class="chartcard">
         <h3>Most-visited places</h3>
-        <p class="cap">Number of trips, top 25.</p>
         <div id="an-places" style="height:740px"></div>
       </div>
       <div class="chartcard">
         <h3>Places with the most days</h3>
-        <p class="cap">Total days, top 25. Multi-stop trips count for the first place named.</p>
         <div id="an-placedays" style="height:740px"></div>
       </div>
     </div>
 
     <div class="chartcard">
       <h3>When the travel happens</h3>
-      <p class="cap">Days away by calendar month, all years combined.</p>
       <div id="an-months" style="height:300px"></div>
     </div>
   </section>
