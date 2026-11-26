@@ -144,7 +144,7 @@
 <div class="wrap">
   <p class="eyebrow">2001 – 2026 · a travel log</p>
   <h1>Everywhere so far,<br>and where to go <em>next</em></h1>
-  <p class="lede">Twenty-five years of trips, plotted. Teal marks the ground already covered; the plum stars are a short list of places to round it out.</p>
+  <p class="lede">Twenty-five years of trips, plotted. Teal marks the ground already covered.</p>
 
       <div class="stats">
     <div class="stat"><div class="n">27</div><div class="l">Countries / destinations</div></div>
@@ -153,7 +153,7 @@
 
   <p class="sub" style="font-size:12px;color:var(--muted)">Updated November 26, 2026 from Trips.</p>
   <div id="map"></div>
-  <p class="maphint">Scroll to zoom, drag to pan. Toggle any layer in the legend. Hover a point for detail.</p>
+  <p class="maphint">Scroll to zoom, drag to pan. Hover a point for its name.</p>
 
   <div class="grid">
     <div class="panel">
@@ -612,40 +612,6 @@ const cities = [
   ["Montego Bay, Jamaica",18.47,-77.92]
 ];
 
-// Natural areas
-const nature = [
-  ["Denali NP, AK",63.07,-151.0],["Kenai Fjords, AK",60.05,-149.90],["Inside Passage, AK",58.30,-134.42],
-  ["Grand Teton / Jackson Hole, WY",43.79,-110.68],["Yellowstone NP, WY",44.60,-110.50],["Big Bend region, TX",29.25,-103.25],
-  ["White Sands NP, NM",32.78,-106.32],["Carlsbad Caverns NP, NM",32.12,-104.59],
-  ["Ozarks / Big Cedar, MO",36.53,-93.22],["Monteverde Cloud Forest, CR",10.30,-84.81],
-  ["Komodo NP, Indonesia",-8.55,119.49],["Belize Barrier Reef",16.51,-88.37],
-  ["Galveston Bay birding, TX",29.30,-94.80],
-  ["Molokini Crater, HI",20.63,-156.50],["Beavers Bend SP, OK",34.14,-94.68],
-  ["Phang Nga Bay / Ko Tapu, Thailand",8.27,98.50],["Parque Arví, Colombia",6.28,-75.50],
-  ["Henry Cowell Redwoods, CA",37.04,-122.07],["Red Rock Canyon, NV",36.13,-115.42],["Muir Woods, CA",37.90,-122.57],["Acadia NP, ME",44.34,-68.27]
-];
-
-// Suggested
-const suggest = [
-  ["Barcelona, Spain",41.39,2.17,"Planned · Nov 30 – Dec 4, 2026 · work"],
-  ["Strasbourg, France",48.58,7.75,"Planned · Dec 4–7, 2026 · Christmas market"],
-  ["Spring / Houston, TX",30.10,-95.44,"Planned · Dec 14–17, 2026 · work"],
-  ["Alta, Norway",69.97,23.27,"Planned · Feb 4–8, 2027 · northern lights"],
-  ["Tromsø, Norway",69.65,18.96,"Planned · Feb 8–11, 2027 · northern lights"],
-  ["Kyoto & Tokyo, Japan",35.30,136.50,"Biggest Asia gap — fish, history, ryokan character"],
-  ["Copenhagen, Denmark",55.68,12.57,"New Nordic tables + design"],
-  ["Marrakech, Morocco",31.63,-8.01,"A first footprint in Africa"],
-  ["Moab — Arches & Zion, UT",38.30,-109.90,"RV route idea · Red-rock Southwest loop · Utah parks"],
-  ["Sedona, AZ",34.87,-111.76,"RV route idea · Red-rock Southwest loop · desert canyons"],
-  ["Nashville, TN",36.16,-86.78,"RV route start · Nashville → Smokies → Asheville"],
-  ["Asheville & the Smokies, NC",35.60,-82.55,"RV route end · boutique, mountain, food-forward"],
-  ["Mexico City",19.43,-99.13,"A food capital worth the trip"],
-  ["Cape Town + Kruger, South Africa",-30.50,24.00,"Adds a continent, a park, and the birds"],
-  ["Switzerland",46.80,8.23,"Scenic trains, Alpine lakes, mountain villages"],
-  ["Coastal northern Italy & Slovenia",45.65,13.78,"Trieste, Piran, and Lake Bled"],
-  ["Coastal Maine & Acadia, ME",44.35,-68.21,"RV route idea · a return to Acadia"]
-];
-
 const visitedCountries = ["USA","MEX","CAN","BLZ","CRI","COL","JAM","CYM","KNA","ATG","LCA","BRB","ESP","GBR",
   "ITA","GRC","NLD","DEU","AUT","HUN","SGP","IDN","THA","AUS","FRA","VAT","CZE"];
 
@@ -665,14 +631,8 @@ const base = {
   showlegend:false
 };
 
-const cTrace = Object.assign({type:"scattergeo",mode:"markers",name:"Been there",
+const cTrace = Object.assign({type:"scattergeo",mode:"markers",name:"Been there",showlegend:false,
   marker:{size:6,color:teal,opacity:.9,line:{color:"#f3f0ea",width:.5}}}, pts(cities,false));
-
-const nTrace = Object.assign({type:"scattergeo",mode:"markers",name:"Natural areas",
-  marker:{size:9,color:natgreen,symbol:"triangle-up",opacity:.95,line:{color:"#f3f0ea",width:.6}}}, pts(nature,false));
-
-const sTrace = Object.assign({type:"scattergeo",mode:"markers",name:"Planned + wishlist",
-  marker:{size:15,color:oxblood,symbol:"star",line:{color:"#f3f0ea",width:.8}}}, pts(suggest,true));
 
 const layout = {
   geo:{
@@ -685,13 +645,11 @@ const layout = {
   },
   margin:{l:0,r:0,t:0,b:0},
   paper_bgcolor:"rgba(0,0,0,0)",
-  legend:{orientation:"h",x:.5,xanchor:"center",y:.02,
-    bgcolor:"rgba(243,240,234,.88)",bordercolor:"#d7d3c6",borderwidth:1,
-    font:{family:"Inter",size:12,color:"#232a29"}},
+  showlegend:false,
   font:{family:"Inter"}
 };
 
-Plotly.newPlot("map",[base,cTrace,nTrace,sTrace],layout,
+Plotly.newPlot("map",[base,cTrace],layout,
   {responsive:true,scrollZoom:true,displayModeBar:false});
 
 // Travel analytics: read the completed trips straight from the log table
