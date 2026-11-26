@@ -707,7 +707,17 @@ Plotly.newPlot("map",[base,cTrace,nTrace,sTrace],layout,
   const y0=Math.min(...Object.keys(byYear)), y1=Math.max(...Object.keys(byYear)), years=[];
   for(let y=y0;y<=y1;y++){years.push(y); byYear[y]=byYear[y]||{w:0,p:0};}
   const busiest=years.reduce((a,y)=>(byYear[y].w+byYear[y].p)>(byYear[a].w+byYear[a].p)?y:a,years[0]);
-  const longest=trips.reduce((a,t)=>(t.e-t.s)>(a.e-a.s)?t:a,trips[0]);
+  // Back-to-back trips (the next one starts by the day after the last ends) count as one journey
+  const journeys=[];
+  trips.forEach(t=>{
+    const j=journeys[journeys.length-1];
+    if(j && t.s<=j.e+D){ j.e=Math.max(j.e,t.e); j.places.push(t.place); }
+    else journeys.push({s:t.s,e:t.e,places:[t.place]});
+  });
+  const longest=journeys.reduce((a,j)=>(j.e-j.s)>(a.e-a.s)?j:a,journeys[0]);
+  const tails=longest.places.map(pl=>pl.split(",").pop().trim());
+  longest.place=longest.places.length===1?longest.places[0]
+    :(tails.every(x=>x===tails[0])?tails[0]:longest.places[0]+" and onward");
   const count={};
   trips.forEach(t=>{let k=t.place.split(/,| and | \/ | area| \(/)[0].trim(); k=alias[k]||k; count[k]=(count[k]||0)+1;});
   const top=Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,10);
