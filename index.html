@@ -122,6 +122,18 @@
   .mgroup .rh{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin-bottom:7px;}
   .chip.been{border-color:#9fcac4;background:#e5f1ef;color:var(--ink);}
   .chip.want{border-color:#cbb0c6;background:#f1e6ef;color:var(--ink);}
+  .analytics{margin-top:42px;}
+  .analytics h2{font-family:"Fraunces",serif;font-weight:500;font-size:24px;color:var(--teal-deep);margin:0 0 4px;}
+  .analytics .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
+  .analytics .stats{margin-bottom:26px;}
+  .analytics .stat .d{font-size:12.5px;color:var(--muted);margin-top:3px;}
+  .chartcard{border:1px solid var(--line);border-radius:4px;background:#fff;padding:16px 16px 6px;margin-bottom:18px;}
+  .chartcard h3{font-family:"Fraunces",serif;font-weight:600;font-size:16.5px;color:var(--ink);margin:0 0 2px;}
+  .chartcard .cap{font-size:12.5px;color:var(--muted);margin:0 0 6px;}
+  .chartrow{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:760px){.chartrow{grid-template-columns:1fr;}}
+  .legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink);margin:0 0 2px;}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
 </style>
 </head>
 <body>
@@ -132,13 +144,10 @@
 
       <div class="stats">
     <div class="stat"><div class="n">27</div><div class="l">Countries / destinations</div></div>
-    <div class="stat"><div class="n">38<span style="font-size:16px;color:var(--muted)">+DC</span></div><div class="l">US states</div></div>
-    <div class="stat"><div class="n">519,091</div><div class="l">Miles · July 19 snapshot</div></div>
-    <div class="stat"><div class="n">839</div><div class="l">Distinct days away</div></div>
-    <div class="stat"><div class="n">153</div><div class="l">Completed entries</div></div>
+    <div class="stat"><div class="n">41</div><div class="l">US states &amp; territories · 38 states, DC, Puerto Rico, US Virgin Is.</div></div>
   </div>
 
-  <p class="sub" style="font-size:12px;color:var(--muted)">Updated November 26, 2026 from Trips. Days count completed date ranges inclusively, with overlapping dates counted once. Mileage is the unrecalculated value from the July 19, 2026 tracker; it is not a current total.</p>
+  <p class="sub" style="font-size:12px;color:var(--muted)">Updated November 26, 2026 from Trips.</p>
   <div id="map"></div>
   <p class="maphint">Scroll to zoom, drag to pan. Toggle any layer in the legend. Hover a point for detail.</p>
 
@@ -524,6 +533,32 @@
       </table>
     </div>
   </section>
+
+  <section class="analytics">
+    <h2>By the numbers</h2>
+    <p class="sub">Worked out from the completed trips in the log above. Days include both the departure and the return date, and a date shared by two trips counts once.</p>
+    <div class="stats" id="an-stats"></div>
+
+    <div class="chartcard">
+      <h3>Days away each year</h3>
+      <p class="cap">Work and personal travel, 2001 to now.</p>
+      <div class="legend"><span><i style="background:#3566b8"></i>Work</span><span><i style="background:#1a9a86"></i>Personal</span></div>
+      <div id="an-years" style="height:320px"></div>
+    </div>
+
+    <div class="chartrow">
+      <div class="chartcard">
+        <h3>Most-visited places</h3>
+        <p class="cap">Number of trips, top ten.</p>
+        <div id="an-places" style="height:330px"></div>
+      </div>
+      <div class="chartcard">
+        <h3>When the travel happens</h3>
+        <p class="cap">Days away by calendar month, all years combined.</p>
+        <div id="an-months" style="height:330px"></div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -638,6 +673,77 @@ const layout = {
 
 Plotly.newPlot("map",[base,cTrace,nTrace,sTrace],layout,
   {responsive:true,scrollZoom:true,displayModeBar:false});
+
+// Travel analytics: read the completed trips straight from the log table
+(function(){
+  const WORK="#3566b8", PERS="#1a9a86", INK="#232a29", MUTED="#6f736b", GRID="#e8e9ec";
+  const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const alias={"Spring":"Houston","New York City":"New York","Port A":"Port Aransas"};
+  const day=s=>{const m=s.trim().match(/^([A-Z][a-z]{2}) (\d{1,2}), (\d{4})$/);
+    return m?Date.UTC(+m[3],MON.indexOf(m[1]),+m[2]):NaN;};
+  const trips=[]; let upcoming=false;
+  document.querySelectorAll(".log tbody tr").forEach(tr=>{
+    if(tr.classList.contains("yr")){upcoming=/^Upcoming/.test(tr.textContent.trim());return;}
+    if(upcoming) return;
+    const td=tr.querySelectorAll("td"); const parts=td[0].textContent.split("–");
+    const s=day(parts[0]), e=day(parts[parts.length-1]);
+    if(isNaN(s)||isNaN(e)) return;
+    trips.push({s,e,work:!!td[1].querySelector(".work"),place:td[2].textContent.trim()});
+  });
+  trips.sort((a,b)=>a.s-b.s);
+
+  const D=86400000, seen=new Set(), byYear={}, byMonth=new Array(12).fill(0);
+  let total=0, workDays=0;
+  trips.forEach(t=>{
+    for(let d=t.s;d<=t.e;d+=D){
+      if(seen.has(d)) continue; seen.add(d);
+      const dt=new Date(d), y=dt.getUTCFullYear();
+      (byYear[y]=byYear[y]||{w:0,p:0})[t.work?"w":"p"]++;
+      byMonth[dt.getUTCMonth()]++; total++; if(t.work) workDays++;
+    }
+  });
+  const y0=Math.min(...Object.keys(byYear)), y1=Math.max(...Object.keys(byYear)), years=[];
+  for(let y=y0;y<=y1;y++){years.push(y); byYear[y]=byYear[y]||{w:0,p:0};}
+  const busiest=years.reduce((a,y)=>(byYear[y].w+byYear[y].p)>(byYear[a].w+byYear[a].p)?y:a,years[0]);
+  const longest=trips.reduce((a,t)=>(t.e-t.s)>(a.e-a.s)?t:a,trips[0]);
+  const count={};
+  trips.forEach(t=>{let k=t.place.split(/,| and | \/ | area| \(/)[0].trim(); k=alias[k]||k; count[k]=(count[k]||0)+1;});
+  const top=Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const nWork=trips.filter(t=>t.work).length;
+
+  const tile=(n,l,d)=>`<div class="stat"><div class="n">${n}</div><div class="l">${l}</div>${d?`<div class="d">${d}</div>`:""}</div>`;
+  document.getElementById("an-stats").innerHTML=
+    tile(trips.length,"Completed trips",`${nWork} work, ${trips.length-nWork} personal`)+
+    tile(total.toLocaleString(),"Days away",`${Math.round(100*workDays/total)}% of them for work`)+
+    tile(busiest,"Busiest year",`${byYear[busiest].w+byYear[busiest].p} days away`)+
+    tile(Math.round((longest.e-longest.s)/D)+1+" days","Longest trip",`${longest.place}, ${new Date(longest.s).getUTCFullYear()}`);
+
+  const font={family:"Inter",size:12,color:MUTED}, cfg={responsive:true,displayModeBar:false};
+  const hl={bgcolor:"#fff",bordercolor:"#d7d3c6",font:{family:"Inter",size:12.5,color:INK}};
+  const gap={color:"#fff",width:1.5};
+  Plotly.newPlot("an-years",[
+    {type:"bar",name:"Work",x:years,y:years.map(y=>byYear[y].w),marker:{color:WORK,line:gap},
+      hovertemplate:"%{y} work days<extra></extra>"},
+    {type:"bar",name:"Personal",x:years,y:years.map(y=>byYear[y].p),marker:{color:PERS,line:gap},
+      hovertemplate:"%{y} personal days<extra></extra>"}
+  ],{barmode:"stack",bargap:.28,showlegend:false,font,hovermode:"x unified",hoverlabel:hl,
+    margin:{l:34,r:8,t:8,b:30},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+    xaxis:{nticks:9,tickangle:0,showgrid:false,linecolor:"#d7d3c6",fixedrange:true},
+    yaxis:{gridcolor:GRID,zeroline:false,fixedrange:true}},cfg);
+
+  const tp=top.slice().reverse();
+  Plotly.newPlot("an-places",[{type:"bar",orientation:"h",y:tp.map(d=>d[0]),x:tp.map(d=>d[1]),
+    marker:{color:PERS},text:tp.map(d=>d[1]),textposition:"outside",cliponaxis:false,
+    textfont:{family:"Inter",size:12,color:INK},hovertemplate:"%{y}: %{x} trips<extra></extra>"}],
+    {font,hoverlabel:hl,bargap:.38,margin:{l:104,r:28,t:4,b:8},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+     xaxis:{visible:false,fixedrange:true},yaxis:{fixedrange:true,tickfont:{color:INK}}},cfg);
+
+  Plotly.newPlot("an-months",[{type:"bar",x:MON,y:byMonth,marker:{color:PERS},
+    hovertemplate:"%{x}: %{y} days<extra></extra>"}],
+    {font,hoverlabel:hl,bargap:.32,margin:{l:34,r:8,t:8,b:30},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+     xaxis:{tickangle:0,tickfont:{size:10.5},showgrid:false,linecolor:"#d7d3c6",fixedrange:true},
+     yaxis:{gridcolor:GRID,zeroline:false,fixedrange:true}},cfg);
+})();
 </script>
 </body>
 </html>
