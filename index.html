@@ -551,13 +551,13 @@
     <div class="chartrow">
       <div class="chartcard">
         <h3>Most-visited places</h3>
-        <p class="cap">Number of trips, top ten.</p>
-        <div id="an-places" style="height:330px"></div>
+        <p class="cap">Number of trips, top twenty.</p>
+        <div id="an-places" style="height:600px"></div>
       </div>
       <div class="chartcard">
         <h3>Places with the most days</h3>
-        <p class="cap">Total days, top ten. Multi-stop trips count for the first place named.</p>
-        <div id="an-placedays" style="height:330px"></div>
+        <p class="cap">Total days, top twenty. Multi-stop trips count for the first place named.</p>
+        <div id="an-placedays" style="height:600px"></div>
       </div>
     </div>
 
@@ -686,7 +686,7 @@ Plotly.newPlot("map",[base,cTrace,nTrace,sTrace],layout,
 (function(){
   const WORK="#3566b8", PERS="#1a9a86", INK="#232a29", MUTED="#6f736b", GRID="#e8e9ec";
   const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const alias={"Spring":"Houston","New York City":"New York","Port A":"Port Aransas"};
+  const alias={"Spring":"Houston","New York City":"New York","Port A":"Port Aransas","Alaskan inside passage cruise":"Alaska cruise","Eastern Caribbean cruise":"Caribbean cruise","Western Caribbean":"Caribbean cruise"};
   const day=s=>{const m=s.trim().match(/^([A-Z][a-z]{2}) (\d{1,2}), (\d{4})$/);
     return m?Date.UTC(+m[3],MON.indexOf(m[1]),+m[2]):NaN;};
   const trips=[]; let upcoming=false;
@@ -727,8 +727,8 @@ Plotly.newPlot("map",[base,cTrace,nTrace,sTrace],layout,
   const count={}, placeDays={};
   trips.forEach(t=>{let k=t.place.split(/,| and | \/ | area| \(/)[0].trim(); k=alias[k]||k;
     count[k]=(count[k]||0)+1; placeDays[k]=(placeDays[k]||0)+Math.round((t.e-t.s)/D)+1;});
-  const top=Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const topDays=Object.entries(placeDays).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const top=Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  const topDays=Object.entries(placeDays).sort((a,b)=>b[1]-a[1]).slice(0,20);
   const nWork=trips.filter(t=>t.work).length;
 
   const tile=(n,l,d)=>`<div class="stat"><div class="n">${n}</div><div class="l">${l}</div>${d?`<div class="d">${d}</div>`:""}</div>`;
@@ -755,14 +755,14 @@ Plotly.newPlot("map",[base,cTrace,nTrace,sTrace],layout,
   Plotly.newPlot("an-places",[{type:"bar",orientation:"h",y:tp.map(d=>d[0]),x:tp.map(d=>d[1]),
     marker:{color:PERS},text:tp.map(d=>d[1]),textposition:"outside",cliponaxis:false,
     textfont:{family:"Inter",size:12,color:INK},hovertemplate:"%{y}: %{x} trips<extra></extra>"}],
-    {font,hoverlabel:hl,bargap:.38,margin:{l:104,r:28,t:4,b:8},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+    {font,hoverlabel:hl,bargap:.38,margin:{l:128,r:28,t:4,b:8},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
      xaxis:{visible:false,fixedrange:true},yaxis:{fixedrange:true,tickfont:{color:INK}}},cfg);
 
   const td=topDays.slice().reverse();
   Plotly.newPlot("an-placedays",[{type:"bar",orientation:"h",y:td.map(d=>d[0]),x:td.map(d=>d[1]),
     marker:{color:PERS},text:td.map(d=>d[1]),textposition:"outside",cliponaxis:false,
     textfont:{family:"Inter",size:12,color:INK},hovertemplate:"%{y}: %{x} days<extra></extra>"}],
-    {font,hoverlabel:hl,bargap:.38,margin:{l:104,r:28,t:4,b:8},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+    {font,hoverlabel:hl,bargap:.38,margin:{l:128,r:28,t:4,b:8},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
      xaxis:{visible:false,fixedrange:true},yaxis:{fixedrange:true,tickfont:{color:INK}}},cfg);
 
   Plotly.newPlot("an-months",[{type:"bar",x:MON,y:byMonth,marker:{color:PERS},
