@@ -101,8 +101,12 @@
   .sugg .place{font-family:var(--serif);font-size:23px;line-height:1.15;}
   .sugg .why{font-size:13.5px;color:var(--mist);margin-top:3px;}
   .rv{font-family:var(--sans);font-size:11.5px;color:var(--rose);border:1px solid rgba(217,163,163,.55);border-radius:100px;padding:1px 8px;margin-left:6px;vertical-align:3px;white-space:nowrap;}
-  .morelink{font-size:14px;color:var(--mist);margin:26px 0 0;max-width:70ch;}
-  .morelink a{font-weight:500;text-underline-offset:3px;}
+  .morelink{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px;
+    margin:34px 0 0;padding:22px 26px;background:var(--petrol-2);border-radius:6px;}
+  .morelink p{font-family:var(--serif);font-size:21px;line-height:1.3;color:var(--cream);margin:0;flex:1 1 320px;max-width:52ch;}
+  .btn{display:inline-block;font:600 14px var(--sans);color:#10262b;background:var(--brass-hi);
+    text-decoration:none;padding:12px 22px;border-radius:100px;white-space:nowrap;}
+  .btn:hover{background:#efca7e;}
 
   /* By the numbers */
   .analytics .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px 32px;margin-bottom:34px;}
@@ -237,7 +241,10 @@
         <li><div class="place">Sofia &amp; the Surva masquerade, Bulgaria</div><div class="why">Horned, bell-hung kukeri in Pernik each January, then Sofia and the Rila Mountains.</div></li>
         <li><div class="place">Nashville → the Smokies → Asheville <span class="rv">RV route</span></div><div class="why">Music, a national park, and mountain towns in one drive.</div></li>
       </ol>
-      <p class="morelink">More possibilities live in the <a href="https://shanntastic-j.github.io/atlas-of-wonder/">Atlas of Wonder</a>, our map of extraordinary festivals, art and landscapes to rate and plan around.</p>
+      <div class="morelink">
+        <p>More possibilities live in the Atlas of Wonder, our map of extraordinary festivals, art and landscapes to rate and plan around.</p>
+        <a class="btn" href="https://shanntastic-j.github.io/atlas-of-wonder/" target="_blank" rel="noopener">Open the Atlas of Wonder</a>
+      </div>
   </section>
 
   <section class="analytics" id="numbers">
