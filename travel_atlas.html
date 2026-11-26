@@ -551,13 +551,13 @@
     <div class="chartrow">
       <div class="chartcard">
         <h3>Most-visited places</h3>
-        <p class="cap">Number of trips, top twenty.</p>
-        <div id="an-places" style="height:600px"></div>
+        <p class="cap">Number of trips, top 25.</p>
+        <div id="an-places" style="height:740px"></div>
       </div>
       <div class="chartcard">
         <h3>Places with the most days</h3>
-        <p class="cap">Total days, top twenty. Multi-stop trips count for the first place named.</p>
-        <div id="an-placedays" style="height:600px"></div>
+        <p class="cap">Total days, top 25. Multi-stop trips count for the first place named.</p>
+        <div id="an-placedays" style="height:740px"></div>
       </div>
     </div>
 
@@ -727,8 +727,8 @@ Plotly.newPlot("map",[base,cTrace,nTrace,sTrace],layout,
   const count={}, placeDays={};
   trips.forEach(t=>{let k=t.place.split(/,| and | \/ | area| \(/)[0].trim(); k=alias[k]||k;
     count[k]=(count[k]||0)+1; placeDays[k]=(placeDays[k]||0)+Math.round((t.e-t.s)/D)+1;});
-  const top=Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,20);
-  const topDays=Object.entries(placeDays).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  const top=Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,25);
+  const topDays=Object.entries(placeDays).sort((a,b)=>b[1]-a[1]).slice(0,25);
   const nWork=trips.filter(t=>t.work).length;
 
   const tile=(n,l,d)=>`<div class="stat"><div class="n">${n}</div><div class="l">${l}</div>${d?`<div class="d">${d}</div>`:""}</div>`;
