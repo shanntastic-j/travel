@@ -6,359 +6,278 @@
 <title>Shannon's Atlas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.1/plotly.min.js"></script>
 <style>
   :root{
-    --parchment:#f6f7f9;
-    --parchment-2:#dce6ea;
-    --ink:#232a29;
-    --muted:#6f736b;
-    --teal:#1f7a70;
-    --teal-deep:#17544f;
-    --oxblood:#7a3f74;
-    --gold:#35618f;
-    --line:#d7d3c6;
+    --petrol:#0f2a30;      /* page */
+    --petrol-2:#153a44;    /* raised surfaces */
+    --petrol-3:#1c4852;    /* hairlines on raised */
+    --cream:#f3ecdf;       /* primary type */
+    --mist:#a9bcb9;        /* secondary type */
+    --brass:#c9a35c;
+    --brass-hi:#e3b965;
+    --rose:#d9a3a3;
+    --line:rgba(201,163,92,.28);
+    --serif:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+    --sans:"Hanken Grotesk",system-ui,sans-serif;
   }
   *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
   body{
-    margin:0;background:var(--parchment);color:var(--ink);
-    font-family:"Inter",system-ui,sans-serif;line-height:1.55;
+    margin:0;background:var(--petrol);color:var(--cream);
+    font-family:var(--sans);font-size:15px;line-height:1.55;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 64px;}
-  .eyebrow{
-    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
-    color:var(--teal-deep);font-weight:600;margin:0 0 6px;
-  }
-  h1{
-    font-family:"Fraunces",Georgia,serif;font-weight:500;
-    font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-.01em;
-    margin:0 0 10px;color:var(--teal-deep);
-  }
-  h1 em{font-style:italic;color:var(--oxblood);}
-  .lede{font-size:16px;color:var(--muted);max-width:60ch;margin:0 0 24px;}
-  .stats{
-    display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);margin:0 0 22px;
-  }
-  .stat{flex:1 1 130px;padding:14px 16px 12px;border-right:1px solid var(--line);}
-  .stat:last-child{border-right:none;}
-  .stat .n{font-family:"Fraunces",serif;font-size:30px;font-weight:600;color:var(--ink);line-height:1;}
-  .stat .l{font-size:12px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-top:5px;}
-  #map{
-    width:100%;height:560px;background:var(--parchment-2);
-    border:1px solid var(--line);border-radius:4px;overflow:hidden;
-  }
-  .maphint{font-size:12.5px;color:var(--muted);margin:8px 2px 30px;font-style:italic;}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:26px 40px;}
-  @media(max-width:760px){.grid{grid-template-columns:1fr;}}
-  .panel h2{
-    font-family:"Fraunces",serif;font-weight:500;font-size:22px;
-    margin:0 0 4px;color:var(--teal-deep);
-  }
-  .panel .sub{font-size:12.5px;color:var(--muted);margin:0 0 14px;}
-  .region{margin-bottom:14px;}
-  .region .rh{
-    font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
-    color:var(--gold);font-weight:600;margin-bottom:4px;
-  }
-  .chips{display:flex;flex-wrap:wrap;gap:6px;}
-  .chip{
-    font-size:13px;padding:3px 10px;border:1px solid #d3dcdc;
-    border-radius:100px;background:#eaf0f0;color:var(--ink);
-  }
-  .chip.nat{border-color:#bcd3c6;background:#eef5ef;}
-  .sugg{list-style:none;margin:0;padding:0;counter-reset:s;}
-  .sugg li{
-    padding:12px 0 12px 40px;border-top:1px solid var(--line);position:relative;
-  }
-  .sugg li:first-child{border-top:none;}
-  .sugg li::before{
-    counter-increment:s;content:counter(s,decimal-leading-zero);
-    position:absolute;left:0;top:12px;font-family:"Fraunces",serif;
-    font-size:15px;color:var(--oxblood);font-weight:600;
-  }
-  .sugg .place{font-weight:600;font-size:15px;}
-  .sugg .why{font-size:13.5px;color:var(--muted);margin-top:2px;}
-  .morelink{font-size:13.5px;color:var(--muted);margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line);}
-  .morelink a{color:var(--teal-deep);font-weight:600;text-decoration:underline;text-underline-offset:2px;}
-  .upnext{
-    border:1px solid var(--oxblood);border-left-width:4px;border-radius:4px;
-    background:rgba(122,63,116,.06);padding:12px 14px;margin:0 0 16px;
-  }
-  .upnext .tag{
-    display:inline-block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-    font-weight:600;color:var(--oxblood);margin-bottom:5px;
-  }
-  .upnext .place{font-weight:600;font-size:15.5px;}
-  .upnext .why{font-size:13.5px;color:var(--muted);margin-top:2px;}
-  .foot{
-    margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
-    font-size:13.5px;color:var(--muted);
-  }
-  .foot strong{color:var(--ink);font-weight:600;}
+  a{color:var(--brass-hi);}
+  :focus-visible{outline:2px solid var(--brass-hi);outline-offset:3px;border-radius:2px;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px;}
+  h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;}
 
-  .log{margin-top:42px;}
-  .log h2{font-family:"Fraunces",serif;font-weight:500;font-size:24px;color:var(--teal-deep);margin:0 0 16px;}
-  .log .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
-  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:#fff;}
-  .log table{border-collapse:collapse;width:100%;font-size:13px;min-width:740px;}
-  .log th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line);}
-  .log td{padding:9px 14px;border-bottom:1px solid #e8e9ec;vertical-align:top;}
-  .log tbody tr:last-child td{border-bottom:none;}
-  .log .dt{white-space:nowrap;color:var(--ink);}
-  .log .pl{font-weight:500;}
-  .log .pu{color:var(--muted);}
-  .log .wi{color:var(--ink);white-space:nowrap;}
-  .log .pu,.log th{white-space:nowrap;}
-  .log tr.yr td{background:#e7eef0;font-family:"Fraunces",serif;font-weight:600;
-    color:var(--teal-deep);font-size:13px;padding:7px 14px;border-bottom:1px solid var(--line);}
-  .pill{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.04em;
-    text-transform:uppercase;padding:2px 8px;border-radius:100px;white-space:nowrap;}
-  .pill.work{color:#35618f;background:rgba(53,97,143,.12);}
-  .pill.vac{color:#1f7a70;background:rgba(31,122,112,.12);}
-  .museums{margin-top:36px;}
-  .museums h2{font-family:"Fraunces",serif;font-weight:500;font-size:24px;color:var(--teal-deep);margin:0 0 4px;}
-  .museums .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
-  .mgroup{margin-bottom:16px;}
-  .mgroup .rh{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin-bottom:7px;}
-  .chip.been{border-color:#9fcac4;background:#e5f1ef;color:var(--ink);}
-  .chip.want{border-color:#cbb0c6;background:#f1e6ef;color:var(--ink);}
-  .analytics{margin-top:42px;}
-  .analytics h2{font-family:"Fraunces",serif;font-weight:500;font-size:24px;color:var(--teal-deep);margin:0 0 16px;}
-  .analytics .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
-  .analytics .stats{margin-bottom:26px;}
-  .analytics .stat .d{font-size:12.5px;color:var(--muted);margin-top:3px;}
-  .chartcard{border:1px solid var(--line);border-radius:4px;background:#fff;padding:16px 16px 6px;margin-bottom:18px;}
-  .chartcard h3{font-family:"Fraunces",serif;font-weight:600;font-size:16.5px;color:var(--ink);margin:0 0 2px;}
-  .chartcard .cap{font-size:12.5px;color:var(--muted);margin:0 0 6px;}
+  /* Header */
+  .top{padding:26px 0 8px;}
+  .top nav{display:flex;flex-wrap:wrap;gap:6px 26px;justify-content:flex-end;margin-bottom:44px;}
+  .top nav a{color:var(--mist);text-decoration:none;font-size:13.5px;padding:4px 0;border-bottom:1px solid transparent;}
+  .top nav a:hover{color:var(--cream);border-bottom-color:var(--brass);}
+  h1{font-size:clamp(44px,8.2vw,104px);line-height:.94;letter-spacing:-.015em;font-style:italic;font-weight:400;color:var(--cream);}
+  .intro{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:22px 48px;margin-top:30px;}
+  .lede{font-size:16.5px;color:var(--mist);max-width:38ch;margin:0;}
+  .stats{display:flex;flex-wrap:wrap;gap:18px 44px;}
+  .stat .n{font-family:var(--serif);font-size:54px;font-weight:500;line-height:.9;color:var(--brass-hi);}
+  .stat .l{font-size:13px;color:var(--mist);margin-top:8px;}
+  .stat .d{font-size:13px;color:var(--mist);margin-top:2px;}
+
+  /* Map: no frame, the ocean is the page */
+  .mapband{margin-top:6px;}
+  #map{width:100%;max-width:1480px;margin:0 auto;height:min(74vh,720px);min-height:340px;}
+  .mapmeta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 24px;}
+  .maphint,.mapmeta .sub{font-size:12.5px;color:var(--mist);margin:6px 0 0;}
+
+  main section{padding-top:88px;}
+  main h2{font-size:clamp(32px,4.4vw,48px);line-height:1.05;margin-bottom:30px;color:var(--cream);}
+  main h2::after{content:"";display:block;width:56px;height:1px;background:var(--brass);margin-top:16px;}
+
+  /* Ground covered */
+  .ledger{margin:0;}
+  .region{display:grid;grid-template-columns:210px 1fr;gap:10px 32px;padding:22px 0;border-top:1px solid var(--line);}
+  .region:last-child{border-bottom:1px solid var(--line);}
+  .rh{font-size:13.5px;color:var(--brass-hi);font-weight:500;padding-top:6px;}
+  .region dd{margin:0;min-width:0;}
+  .names{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:2px 26px;
+    font-family:var(--serif);font-size:25px;line-height:1.35;}
+  .names.small{font-size:21px;gap:2px 22px;}
+  .states{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;max-width:760px;}
+  .states li{font-size:12.5px;font-weight:500;text-align:center;padding:7px 0;border-radius:3px;letter-spacing:.02em;}
+  .states .in{background:var(--petrol-2);color:var(--cream);border:1px solid var(--petrol-3);}
+  .states .out{color:var(--rose);border:1px dashed rgba(217,163,163,.6);}
+  .key{font-size:12.5px;color:var(--mist);margin:12px 0 0;}
+  .key .sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:7px;vertical-align:-1px;}
+  .key .sw.in{background:var(--petrol-2);border:1px solid var(--petrol-3);}
+  .key .sw.out{border:1px dashed rgba(217,163,163,.8);margin-left:20px;}
+  .musecols{display:grid;grid-template-columns:1.6fr 1fr;gap:20px 40px;}
+  .musecols h3{font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--mist);margin-bottom:8px;}
+  .muse{list-style:none;margin:0;padding:0;font-family:var(--serif);font-size:19.5px;line-height:1.3;}
+  .muse.been{columns:2;column-gap:32px;}
+  .muse li{break-inside:avoid;padding:3px 0;}
+  .muse li span{font-family:var(--sans);font-size:12.5px;color:var(--mist);margin-left:8px;white-space:nowrap;}
+  .muse.want li{color:var(--rose);}
+
+  /* Round it out */
+  .lab{font-family:var(--sans);font-size:13.5px;font-weight:500;color:var(--brass-hi);margin:0 0 14px;}
+  .booked{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:46px;}
+  .upnext{background:var(--petrol-2);border-top:2px solid var(--rose);border-radius:0 0 6px 6px;padding:16px 18px 18px;display:flex;flex-direction:column;}
+  .upnext .tag{font-size:12.5px;color:var(--rose);font-weight:500;}
+  .upnext .place{font-family:var(--serif);font-size:25px;line-height:1.1;margin:8px 0 8px;}
+  .upnext .why{font-size:13.5px;color:var(--mist);flex:1;}
+  .upnext .kind{font-size:12px;color:var(--mist);margin-top:14px;}
+  .kind::before,.pill::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px;}
+  .kind.work::before,.pill.work::before{background:#4c9ccf;}
+  .kind.vac::before,.pill.vac::before{background:#c2923a;}
+  .sugg{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-template-rows:repeat(5,auto);column-gap:56px;}
+  .sugg li{counter-increment:s;position:relative;padding:15px 0 15px 54px;border-top:1px solid var(--line);}
+  .sugg li::before{content:counter(s);position:absolute;left:0;top:9px;width:40px;
+    font-family:var(--serif);font-style:italic;font-size:34px;line-height:1;color:var(--brass);}
+  .sugg .place{font-family:var(--serif);font-size:23px;line-height:1.15;}
+  .sugg .why{font-size:13.5px;color:var(--mist);margin-top:3px;}
+  .rv{font-family:var(--sans);font-size:11.5px;color:var(--rose);border:1px solid rgba(217,163,163,.55);border-radius:100px;padding:1px 8px;margin-left:6px;vertical-align:3px;white-space:nowrap;}
+  .morelink{font-size:14px;color:var(--mist);margin:26px 0 0;max-width:70ch;}
+  .morelink a{font-weight:500;text-underline-offset:3px;}
+
+  /* By the numbers */
+  .analytics .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px 32px;margin-bottom:34px;}
+  .analytics .stat .n{font-size:clamp(38px,4.6vw,58px);}
+  .chartcard{background:var(--petrol-2);border-radius:6px;padding:20px 20px 8px;margin-bottom:18px;}
+  .chartcard h3{font-size:23px;margin-bottom:2px;}
+  .chartcard .cap{font-size:13px;color:var(--mist);margin:0 0 8px;}
   .chartrow{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-  @media (max-width:760px){.chartrow{grid-template-columns:1fr;}}
-  .legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink);margin:0 0 2px;}
+  .legend{display:flex;gap:18px;font-size:12.5px;color:var(--cream);margin:0 0 2px;}
   .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
+
+  /* Log */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:-8px 0 16px;}
+  .filters button{font:500 13px var(--sans);color:var(--mist);background:none;border:1px solid var(--petrol-3);
+    border-radius:100px;padding:6px 15px;cursor:pointer;}
+  .filters button:hover{color:var(--cream);border-color:var(--brass);}
+  .filters button[aria-pressed="true"]{background:var(--brass-hi);border-color:var(--brass-hi);color:#10262b;}
+  .tablewrap{overflow-x:auto;background:var(--petrol-2);border-radius:6px;}
+  .log table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px;}
+  .log th{text-align:left;font-size:12.5px;color:var(--mist);font-weight:500;padding:13px 18px;border-bottom:1px solid var(--petrol-3);white-space:nowrap;}
+  .log td{padding:10px 18px;border-bottom:1px solid var(--petrol-3);vertical-align:top;}
+  .log tbody tr:last-child td{border-bottom:none;}
+  .log tr[hidden]{display:none;}
+  .log .dt{white-space:nowrap;color:var(--mist);font-variant-numeric:tabular-nums;}
+  .log .pl{font-weight:500;color:var(--cream);}
+  .log .pu{color:var(--mist);white-space:nowrap;}
+  .log .wi{color:var(--cream);white-space:nowrap;}
+  .log tr.yr td{background:var(--petrol);font-family:var(--serif);font-style:italic;font-size:21px;
+    color:var(--brass-hi);padding:18px 18px 8px;border-bottom:1px solid var(--line);}
+  .pill{font-size:12.5px;color:var(--cream);white-space:nowrap;}
+  main{padding-bottom:96px;}
+
+  @media (max-width:900px){
+    .booked{grid-template-columns:1fr 1fr;}
+    .analytics .stats{grid-template-columns:1fr 1fr;}
+    .musecols{grid-template-columns:1fr;}
+  }
+  @media (max-width:760px){
+    .wrap{padding:0 18px;}
+    .top nav{justify-content:flex-start;margin-bottom:30px;}
+    main section{padding-top:64px;}
+    .region{grid-template-columns:1fr;gap:8px;}
+    .rh{padding-top:0;}
+    .names{font-size:22px;gap:0 20px;}
+    .muse.been{columns:1;}
+    .sugg{grid-template-columns:1fr;grid-auto-flow:row;grid-template-rows:none;}
+    .chartrow{grid-template-columns:1fr;}
+    #map{height:56vh;}
+  }
+  @media (max-width:480px){.booked{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <p class="eyebrow">2001 – 2026 · a travel log</p>
-  <h1>Everywhere so far,<br>and where to go <em>next</em></h1>
-  <p class="lede">Twenty-five years of trips, plotted. Teal marks the ground already covered.</p>
-
+<header class="top">
+  <div class="wrap">
+    <nav aria-label="Sections">
+      <a href="#places">Places</a><a href="#next">Next</a><a href="#numbers">Numbers</a><a href="#log">Every trip</a>
+    </nav>
+    <h1>Everywhere so far,<br>and where to go next</h1>
+    <div class="intro">
+      <p class="lede">Twenty-five years of trips, 2001 to 2026. Every brass point is a place already visited.</p>
       <div class="stats">
-    <div class="stat"><div class="n">27</div><div class="l">Countries / destinations</div></div>
-    <div class="stat"><div class="n">41</div><div class="l">US states &amp; territories · 38 states, DC, Puerto Rico, US Virgin Is.</div></div>
-  </div>
-
-  <p class="sub" style="font-size:12px;color:var(--muted)">Updated November 26, 2026 from Trips.</p>
-  <div id="map"></div>
-  <p class="maphint">Scroll to zoom, drag to pan. Hover a point for its name.</p>
-
-  <div class="grid">
-    <div class="panel">
-      <h2 style="margin-bottom:16px">Ground covered</h2>
-
-      <div class="region">
-        <div class="rh">Europe</div>
-        <div class="chips">
-          <span class="chip">Spain</span>
-          <span class="chip">France</span>
-          <span class="chip">United Kingdom</span>
-          <span class="chip">Italy</span>
-          <span class="chip">Vatican City</span>
-          <span class="chip">Greece</span>
-          <span class="chip">Netherlands</span>
-          <span class="chip">Germany</span>
-          <span class="chip">Austria</span>
-          <span class="chip">Hungary</span>
-          <span class="chip">Czech Republic</span>
-        </div>
-      </div>
-      <div class="region">
-        <div class="rh">Asia &amp; Oceania</div>
-        <div class="chips">
-          <span class="chip">Thailand</span>
-          <span class="chip">Indonesia</span>
-          <span class="chip">Singapore</span>
-          <span class="chip">Australia</span>
-        </div>
-      </div>
-      <div class="region">
-        <div class="rh">The Americas &amp; Caribbean</div>
-        <div class="chips">
-          <span class="chip">United States</span>
-          <span class="chip">Mexico</span>
-          <span class="chip">Canada</span>
-          <span class="chip">Costa Rica</span>
-          <span class="chip">Belize</span>
-          <span class="chip">Colombia</span>
-          <span class="chip">Jamaica</span>
-          <span class="chip">Cayman Islands</span>
-          <span class="chip">Antigua &amp; Barbuda</span>
-          <span class="chip">St. Kitts &amp; Nevis</span>
-          <span class="chip">St. Lucia</span>
-          <span class="chip">Barbados</span>
-        </div>
-      </div>
-      <div class="region">
-        <div class="rh">US states, district &amp; territories</div>
-        <div class="chips">
-          <span class="chip">AK</span>
-          <span class="chip">AZ</span>
-          <span class="chip">AR</span>
-          <span class="chip">CA</span>
-          <span class="chip">CT</span>
-          <span class="chip">FL</span>
-          <span class="chip">GA</span>
-          <span class="chip">HI</span>
-          <span class="chip">IN</span>
-          <span class="chip">KS</span>
-          <span class="chip">LA</span>
-          <span class="chip">ME</span>
-          <span class="chip">MD</span>
-          <span class="chip">MA</span>
-          <span class="chip">MS</span>
-          <span class="chip">MO</span>
-          <span class="chip">MN</span>
-          <span class="chip">NE</span>
-          <span class="chip">NV</span>
-          <span class="chip">NH</span>
-          <span class="chip">NJ</span>
-          <span class="chip">NM</span>
-          <span class="chip">NY</span>
-          <span class="chip">NC</span>
-          <span class="chip">OK</span>
-          <span class="chip">OR</span>
-          <span class="chip">PA</span>
-          <span class="chip">RI</span>
-          <span class="chip">SC</span>
-          <span class="chip">TN</span>
-          <span class="chip">TX</span>
-          <span class="chip">UT</span>
-          <span class="chip">VT</span>
-          <span class="chip">VA</span>
-          <span class="chip">WA</span>
-          <span class="chip">WV</span>
-          <span class="chip">WI</span>
-          <span class="chip">WY</span>
-          <span class="chip">DC</span>
-          <span class="chip">Puerto Rico</span>
-          <span class="chip">US Virgin Is.</span>
-        </div>
-      </div>
-      <div class="region">
-        <div class="rh">States still to go</div>
-        <div class="chips">
-          <span class="chip want">Alabama</span>
-          <span class="chip want">Colorado</span>
-          <span class="chip want">Delaware</span>
-          <span class="chip want">Idaho</span>
-          <span class="chip want">Illinois</span>
-          <span class="chip want">Iowa</span>
-          <span class="chip want">Kentucky</span>
-          <span class="chip want">Michigan</span>
-          <span class="chip want">Montana</span>
-          <span class="chip want">North Dakota</span>
-          <span class="chip want">Ohio</span>
-          <span class="chip want">South Dakota</span>
-        </div>
-      </div>
-      <div class="region">
-        <div class="rh">Major natural areas</div>
-        <div class="chips">
-          <span class="chip nat">Denali</span><span class="chip nat">Kenai Fjords</span><span class="chip nat">Inside Passage</span>
-          <span class="chip nat">Grand Teton</span><span class="chip nat">Yellowstone</span><span class="chip nat">Big Bend</span><span class="chip nat">White Sands</span>
-          <span class="chip nat">Carlsbad Caverns</span><span class="chip nat">Ozarks</span>
-          <span class="chip nat">Monteverde Cloud Forest</span><span class="chip nat">Komodo</span>
-          <span class="chip nat">Belize Barrier Reef</span><span class="chip nat">Galveston Bay</span>
-          <span class="chip nat">Molokini Crater</span><span class="chip nat">Beavers Bend</span>
-          <span class="chip nat">Phang Nga Bay</span><span class="chip nat">Parque Arví</span>
-          <span class="chip nat">Henry Cowell Redwoods</span><span class="chip nat">Red Rock Canyon</span><span class="chip nat">Muir Woods</span><span class="chip nat">Acadia NP</span>
-        </div>
-      </div>
-      <div class="region">
-        <div class="rh">Great art museums — been</div>
-        <div class="chips">
-          <span class="chip been">Prado — Madrid</span>
-          <span class="chip been">Reina Sofía — Madrid</span>
-          <span class="chip been">Thyssen-Bornemisza — Madrid</span>
-          <span class="chip been">Rijksmuseum — Amsterdam</span>
-          <span class="chip been">Van Gogh Museum — Amsterdam</span>
-          <span class="chip been">Vatican Museums — Rome</span>
-          <span class="chip been">The National Gallery — London</span>
-          <span class="chip been">Tate Modern — London</span>
-          <span class="chip been">V&amp;A — London</span>
-          <span class="chip been">British Museum — London</span>
-          <span class="chip been">Kunsthistorisches — Vienna</span>
-          <span class="chip been">Belvedere — Vienna</span>
-          <span class="chip been">Albertina — Vienna</span>
-          <span class="chip been">Gemäldegalerie — Berlin</span>
-          <span class="chip been">Lobkowicz Palace — Prague</span>
-          <span class="chip been">The Met — New York</span>
-          <span class="chip been">MoMA — New York</span>
-          <span class="chip been">MFA — Boston</span>
-          <span class="chip been">Isabella Stewart Gardner — Boston</span>
-          <span class="chip been">National Gallery of Art — Washington, DC</span>
-          <span class="chip been">The Getty — Los Angeles</span>
-          <span class="chip been">Crystal Bridges — Bentonville</span>
-          <span class="chip been">MFAH — Houston</span>
-          <span class="chip been">Milwaukee Art Museum — Milwaukee</span>
-          <span class="chip been">Chihuly Garden and Glass — Seattle</span>
-          <span class="chip been">Museo de Antioquia — Medellín</span>
-        </div>
-        <div class="rh" style="margin-top:10px">Art museums on the list</div>
-        <div class="chips">
-          <span class="chip want">Louvre — Paris</span>
-          <span class="chip want">Musée d'Orsay — Paris</span>
-          <span class="chip want">Uffizi — Florence</span>
-          <span class="chip want">Picasso Museum — Barcelona</span>
-          <span class="chip want">Guggenheim Bilbao — Bilbao</span>
-          <span class="chip want">The Hermitage — St. Petersburg</span>
-          <span class="chip want">Art Institute — Chicago</span>
-          <span class="chip want">Tokyo National Museum — Tokyo</span>
-        </div>
+        <div class="stat"><div class="n">27</div><div class="l">Countries and destinations</div></div>
+        <div class="stat"><div class="n">41</div><div class="l">US states and territories</div></div>
       </div>
     </div>
+  </div>
+</header>
 
-    <div class="panel">
-      <h2>Round it out</h2>
-      <p class="sub">Four upcoming entries, plus ten ideas on the list.</p>
+<div class="mapband">
+  <div id="map"></div>
+  <div class="wrap mapmeta">
+    <p class="maphint">Scroll to zoom, drag to pan. Hover a point for its name.</p>
+    <p class="sub">Updated November 26, 2026 from Trips.</p>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="places" id="places">
+    <h2>Ground covered</h2>
+    <dl class="ledger">
+      <div class="region"><dt class="rh">Europe</dt><dd><ul class="names"><li>Spain</li><li>France</li><li>United Kingdom</li><li>Italy</li><li>Vatican City</li><li>Greece</li><li>Netherlands</li><li>Germany</li><li>Austria</li><li>Hungary</li><li>Czech Republic</li></ul></dd></div>
+      <div class="region"><dt class="rh">Asia &amp; Oceania</dt><dd><ul class="names"><li>Thailand</li><li>Indonesia</li><li>Singapore</li><li>Australia</li></ul></dd></div>
+      <div class="region"><dt class="rh">The Americas &amp; Caribbean</dt><dd><ul class="names"><li>United States</li><li>Mexico</li><li>Canada</li><li>Costa Rica</li><li>Belize</li><li>Colombia</li><li>Jamaica</li><li>Cayman Islands</li><li>Antigua &amp; Barbuda</li><li>St. Kitts &amp; Nevis</li><li>St. Lucia</li><li>Barbados</li></ul></dd></div>
+      <div class="region"><dt class="rh">United States</dt><dd>
+        <ul class="states"><li class="out" title="Alabama, still to go">AL</li><li class="in" title="Alaska">AK</li><li class="in" title="Arizona">AZ</li><li class="in" title="Arkansas">AR</li><li class="in" title="California">CA</li><li class="out" title="Colorado, still to go">CO</li><li class="in" title="Connecticut">CT</li><li class="out" title="Delaware, still to go">DE</li><li class="in" title="District of Columbia">DC</li><li class="in" title="Florida">FL</li><li class="in" title="Georgia">GA</li><li class="in" title="Hawaii">HI</li><li class="out" title="Idaho, still to go">ID</li><li class="out" title="Illinois, still to go">IL</li><li class="in" title="Indiana">IN</li><li class="out" title="Iowa, still to go">IA</li><li class="in" title="Kansas">KS</li><li class="out" title="Kentucky, still to go">KY</li><li class="in" title="Louisiana">LA</li><li class="in" title="Maine">ME</li><li class="in" title="Maryland">MD</li><li class="in" title="Massachusetts">MA</li><li class="out" title="Michigan, still to go">MI</li><li class="in" title="Minnesota">MN</li><li class="in" title="Mississippi">MS</li><li class="in" title="Missouri">MO</li><li class="out" title="Montana, still to go">MT</li><li class="in" title="Nebraska">NE</li><li class="in" title="Nevada">NV</li><li class="in" title="New Hampshire">NH</li><li class="in" title="New Jersey">NJ</li><li class="in" title="New Mexico">NM</li><li class="in" title="New York">NY</li><li class="in" title="North Carolina">NC</li><li class="out" title="North Dakota, still to go">ND</li><li class="out" title="Ohio, still to go">OH</li><li class="in" title="Oklahoma">OK</li><li class="in" title="Oregon">OR</li><li class="in" title="Pennsylvania">PA</li><li class="in" title="Puerto Rico">PR</li><li class="in" title="Rhode Island">RI</li><li class="in" title="South Carolina">SC</li><li class="out" title="South Dakota, still to go">SD</li><li class="in" title="Tennessee">TN</li><li class="in" title="Texas">TX</li><li class="in" title="US Virgin Islands">VI</li><li class="in" title="Utah">UT</li><li class="in" title="Vermont">VT</li><li class="in" title="Virginia">VA</li><li class="in" title="Washington">WA</li><li class="in" title="West Virginia">WV</li><li class="in" title="Wisconsin">WI</li><li class="in" title="Wyoming">WY</li></ul>
+        <p class="key"><span class="sw in"></span>Visited: 38 states, DC, Puerto Rico and the US Virgin Islands<span class="sw out"></span>Still to go</p>
+      </dd></div>
+      <div class="region"><dt class="rh">Major natural areas</dt><dd><ul class="names small"><li>Denali</li><li>Kenai Fjords</li><li>Inside Passage</li><li>Grand Teton</li><li>Yellowstone</li><li>Big Bend</li><li>White Sands</li><li>Carlsbad Caverns</li><li>Ozarks</li><li>Monteverde Cloud Forest</li><li>Komodo</li><li>Belize Barrier Reef</li><li>Galveston Bay</li><li>Molokini Crater</li><li>Beavers Bend</li><li>Phang Nga Bay</li><li>Parque Arví</li><li>Henry Cowell Redwoods</li><li>Red Rock Canyon</li><li>Muir Woods</li><li>Acadia NP</li></ul></dd></div>
+      <div class="region"><dt class="rh">Great art museums</dt><dd class="musecols">
+        <div><h3>Been</h3><ul class="muse been"><li>Prado<span>Madrid</span></li><li>Reina Sofía<span>Madrid</span></li><li>Thyssen-Bornemisza<span>Madrid</span></li><li>Rijksmuseum<span>Amsterdam</span></li><li>Van Gogh Museum<span>Amsterdam</span></li><li>Vatican Museums<span>Rome</span></li><li>The National Gallery<span>London</span></li><li>Tate Modern<span>London</span></li><li>V&amp;A<span>London</span></li><li>British Museum<span>London</span></li><li>Kunsthistorisches<span>Vienna</span></li><li>Belvedere<span>Vienna</span></li><li>Albertina<span>Vienna</span></li><li>Gemäldegalerie<span>Berlin</span></li><li>Lobkowicz Palace<span>Prague</span></li><li>The Met<span>New York</span></li><li>MoMA<span>New York</span></li><li>MFA<span>Boston</span></li><li>Isabella Stewart Gardner<span>Boston</span></li><li>National Gallery of Art<span>Washington, DC</span></li><li>The Getty<span>Los Angeles</span></li><li>Crystal Bridges<span>Bentonville</span></li><li>MFAH<span>Houston</span></li><li>Milwaukee Art Museum<span>Milwaukee</span></li><li>Chihuly Garden and Glass<span>Seattle</span></li><li>Museo de Antioquia<span>Medellín</span></li></ul></div>
+        <div><h3>On the list</h3><ul class="muse want"><li>Louvre<span>Paris</span></li><li>Musée d'Orsay<span>Paris</span></li><li>Uffizi<span>Florence</span></li><li>Picasso Museum<span>Barcelona</span></li><li>Guggenheim Bilbao<span>Bilbao</span></li><li>The Hermitage<span>St. Petersburg</span></li><li>Art Institute<span>Chicago</span></li><li>Tokyo National Museum<span>Tokyo</span></li></ul></div>
+      </dd></div>
+    </dl>
+  </section>
+
+  <section class="next" id="next">
+    <h2>Round it out</h2>
+    <h3 class="lab">Booked</h3>
+    <div class="booked">
       <div class="upnext">
-        <span class="tag">Planned · Nov 30 – Dec 4, 2026</span>
-        <div class="place">Barcelona, Spain</div><div class="why">HPE Discover Barcelona · work.</div>
+        <span class="tag">Nov 30 – Dec 4, 2026</span>
+        <div class="place">Barcelona, Spain</div><div class="why">HPE Discover Barcelona.</div>
+        <span class="kind work">Work</span>
       </div>
       <div class="upnext">
-        <span class="tag">Planned · Dec 4–7, 2026</span>
-        <div class="place">Strasbourg, France</div><div class="why">Christmas market · vacation.</div>
+        <span class="tag">Dec 4–7, 2026</span>
+        <div class="place">Strasbourg, France</div><div class="why">Christmas market.</div>
+        <span class="kind vac">Vacation</span>
       </div>
       <div class="upnext">
-        <span class="tag">Planned · Dec 14–17, 2026</span>
+        <span class="tag">Dec 14–17, 2026</span>
         <div class="place">Spring / Houston, Texas</div><div class="why">HPE work trip.</div>
+        <span class="kind work">Work</span>
       </div>
       <div class="upnext">
-        <span class="tag">Planned · Feb 3–12, 2027</span>
-        <div class="place">Alta &amp; Tromsø, Norway</div>
-        <div class="why">Northern lights, Arctic snow, and reindeer sledding · vacation.</div>
+        <span class="tag">Feb 3–12, 2027</span>
+        <div class="place">Alta &amp; Tromsø, Norway</div><div class="why">Northern lights, Arctic snow, and reindeer sledding.</div>
+        <span class="kind vac">Vacation</span>
       </div>
+    </div>
+    <h3 class="lab">Ideas, in order of pull</h3>
       <ol class="sugg">
         <li><div class="place">Kyoto &amp; Tokyo, Japan</div><div class="why">Temples, gardens, and seafood.</div></li>
         <li><div class="place">Switzerland</div><div class="why">Scenic trains, Alpine lakes, and mountain villages.</div></li>
         <li><div class="place">Mexico City</div><div class="why">Museums, markets, and a great food scene.</div></li>
-        <li><div class="place">Coastal Maine &amp; Acadia <span style="color:var(--oxblood);font-size:12px">RV route</span></div><div class="why">Lobster shacks and East Coast birding.</div></li>
+        <li><div class="place">Coastal Maine &amp; Acadia <span class="rv">RV route</span></div><div class="why">Lobster shacks and East Coast birding.</div></li>
         <li><div class="place">Coastal northern Italy &amp; Slovenia</div><div class="why">Trieste and the Adriatic coast, Piran, and Lake Bled.</div></li>
-        <li><div class="place">Red-rock Southwest — Moab, Zion &amp; Sedona <span style="color:var(--oxblood);font-size:12px">RV route</span></div><div class="why">Utah's national parks and Arizona's desert canyons in one loop.</div></li>
+        <li><div class="place">Red-rock Southwest — Moab, Zion &amp; Sedona <span class="rv">RV route</span></div><div class="why">Utah's national parks and Arizona's desert canyons in one loop.</div></li>
         <li><div class="place">Marrakech &amp; the Atlas, Morocco</div><div class="why">Riads, souks, and mountains nearby.</div></li>
         <li><div class="place">Copenhagen, Denmark</div><div class="why">New Nordic dining and design.</div></li>
         <li><div class="place">Cape Town + Kruger safari, South Africa</div><div class="why">Coastline, safari, and exceptional birding.</div></li>
-        <li><div class="place">Nashville → the Smokies → Asheville <span style="color:var(--oxblood);font-size:12px">RV route</span></div><div class="why">Music, a national park, and mountain towns in one drive.</div></li>
+        <li><div class="place">Nashville → the Smokies → Asheville <span class="rv">RV route</span></div><div class="why">Music, a national park, and mountain towns in one drive.</div></li>
       </ol>
       <p class="morelink">More possibilities live in the <a href="https://shanntastic-j.github.io/atlas-of-wonder/">Atlas of Wonder</a>, our map of extraordinary festivals, art and landscapes to rate and plan around.</p>
-    </div>
-  </div>
+  </section>
 
-  <section class="log">
+  <section class="analytics" id="numbers">
+    <h2>By the numbers</h2>
+    <div class="stats" id="an-stats"></div>
+
+    <div class="chartcard">
+      <h3>Days away each year</h3>
+      <p class="cap">Work and personal travel, 2001 to now.</p>
+      <div class="legend"><span><i style="background:#4c9ccf"></i>Work</span><span><i style="background:#c2923a"></i>Personal</span></div>
+      <div id="an-years" style="height:320px"></div>
+    </div>
+
+    <div class="chartrow">
+      <div class="chartcard">
+        <h3>Most-visited places</h3>
+        <p class="cap">Number of trips, top 25.</p>
+        <div id="an-places" style="height:740px"></div>
+      </div>
+      <div class="chartcard">
+        <h3>Places with the most days</h3>
+        <p class="cap">Total days, top 25. Multi-stop trips count for the first place named.</p>
+        <div id="an-placedays" style="height:740px"></div>
+      </div>
+    </div>
+
+    <div class="chartcard">
+      <h3>When the travel happens</h3>
+      <p class="cap">Days away by calendar month, all years combined.</p>
+      <div id="an-months" style="height:300px"></div>
+    </div>
+  </section>
+
+  <section class="log" id="log">
     <h2>Every trip, newest first</h2>
+    <div class="filters" role="group" aria-label="Show trips">
+      <button type="button" data-f="all" aria-pressed="true">All trips</button>
+      <button type="button" data-f="work" aria-pressed="false">Work</button>
+      <button type="button" data-f="vac" aria-pressed="false">Personal</button>
+    </div>
     <div class="tablewrap">
       <table>
         <thead><tr><th>Dates</th><th>Type</th><th>Place</th><th>Category</th><th>Joined by</th></tr></thead>
@@ -548,41 +467,10 @@
       </table>
     </div>
   </section>
-
-  <section class="analytics">
-    <h2>By the numbers</h2>
-    <div class="stats" id="an-stats"></div>
-
-    <div class="chartcard">
-      <h3>Days away each year</h3>
-      <p class="cap">Work and personal travel, 2001 to now.</p>
-      <div class="legend"><span><i style="background:#3566b8"></i>Work</span><span><i style="background:#1a9a86"></i>Personal</span></div>
-      <div id="an-years" style="height:320px"></div>
-    </div>
-
-    <div class="chartrow">
-      <div class="chartcard">
-        <h3>Most-visited places</h3>
-        <p class="cap">Number of trips, top 25.</p>
-        <div id="an-places" style="height:740px"></div>
-      </div>
-      <div class="chartcard">
-        <h3>Places with the most days</h3>
-        <p class="cap">Total days, top 25. Multi-stop trips count for the first place named.</p>
-        <div id="an-placedays" style="height:740px"></div>
-      </div>
-    </div>
-
-    <div class="chartcard">
-      <h3>When the travel happens</h3>
-      <p class="cap">Days away by calendar month, all years combined.</p>
-      <div id="an-months" style="height:300px"></div>
-    </div>
-  </section>
-</div>
+</main>
 
 <script>
-const teal="#1f7a70", oxblood="#7a3f74", natgreen="#2f8f5f";
+const brass="#e3b965";
 
 // Visited cities
 const cities = [
@@ -626,27 +514,28 @@ function pts(arr, hasWhy){
 const base = {
   type:"choropleth", locationmode:"ISO-3",
   locations:visitedCountries, z:visitedCountries.map(()=>1),
-  colorscale:[[0,"#d3e4dd"],[1,"#d3e4dd"]], showscale:false,
-  marker:{line:{color:"#f3f0ea",width:.6}}, hoverinfo:"skip",
+  colorscale:[[0,"#2b6a70"],[1,"#2b6a70"]], showscale:false,
+  marker:{line:{color:"#0f2a30",width:.6}}, hoverinfo:"skip",
   showlegend:false
 };
 
 const cTrace = Object.assign({type:"scattergeo",mode:"markers",name:"Been there",showlegend:false,
-  marker:{size:6,color:teal,opacity:.9,line:{color:"#f3f0ea",width:.5}}}, pts(cities,false));
+  marker:{size:6.5,color:brass,opacity:.95,line:{color:"#0f2a30",width:.8}}}, pts(cities,false));
 
 const layout = {
   geo:{
     scope:"world", projection:{type:"natural earth"},
-    showland:true, landcolor:"#dde3d6",
-    showcountries:true, countrycolor:"#b9c2bb",
-    coastlinecolor:"#aab6ad", showocean:true, oceancolor:"#dce6ea",
+    showland:true, landcolor:"#1b424b",
+    showcountries:true, countrycolor:"#0f2a30",
+    coastlinecolor:"#2f5a62", showocean:true, oceancolor:"#0f2a30", showframe:false,
     showlakes:false, bgcolor:"rgba(0,0,0,0)",
     lataxis:{range:[-55,72]}, lonaxis:{range:[-165,175]}
   },
   margin:{l:0,r:0,t:0,b:0},
   paper_bgcolor:"rgba(0,0,0,0)",
   showlegend:false,
-  font:{family:"Inter"}
+  hoverlabel:{bgcolor:"#f3ecdf",bordercolor:"#c9a35c",font:{family:"Hanken Grotesk",size:13,color:"#10262b"}},
+  font:{family:"Hanken Grotesk"}
 };
 
 Plotly.newPlot("map",[base,cTrace],layout,
@@ -654,7 +543,7 @@ Plotly.newPlot("map",[base,cTrace],layout,
 
 // Travel analytics: read the completed trips straight from the log table
 (function(){
-  const WORK="#3566b8", PERS="#1a9a86", INK="#232a29", MUTED="#6f736b", GRID="#e8e9ec";
+  const WORK="#4c9ccf", PERS="#c2923a", INK="#f3ecdf", MUTED="#a9bcb9", GRID="rgba(243,236,223,.09)";
   const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const alias={"Spring":"Houston","New York City":"New York","Port A":"Port Aransas","Alaskan inside passage cruise":"Alaska cruise","Eastern Caribbean cruise":"Caribbean cruise","Western Caribbean":"Caribbean cruise"};
   const day=s=>{const m=s.trim().match(/^([A-Z][a-z]{2}) (\d{1,2}), (\d{4})$/);
@@ -708,9 +597,9 @@ Plotly.newPlot("map",[base,cTrace],layout,
     tile(busiest,"Busiest year",`${byYear[busiest].w+byYear[busiest].p} days away`)+
     tile(Math.round((longest.e-longest.s)/D)+1+" days","Longest trip",`${longest.place}, ${new Date(longest.s).getUTCFullYear()}`);
 
-  const font={family:"Inter",size:12,color:MUTED}, cfg={responsive:true,displayModeBar:false};
-  const hl={bgcolor:"#fff",bordercolor:"#d7d3c6",font:{family:"Inter",size:12.5,color:INK}};
-  const gap={color:"#fff",width:1.5};
+  const font={family:"Hanken Grotesk",size:12,color:MUTED}, cfg={responsive:true,displayModeBar:false};
+  const hl={bgcolor:"#f3ecdf",bordercolor:"#c9a35c",font:{family:"Hanken Grotesk",size:12.5,color:"#10262b"}};
+  const gap={color:"#153a44",width:1.5};
   Plotly.newPlot("an-years",[
     {type:"bar",name:"Work",x:years,y:years.map(y=>byYear[y].w),marker:{color:WORK,line:gap},
       hovertemplate:"%{y} work days<extra></extra>"},
@@ -718,30 +607,46 @@ Plotly.newPlot("map",[base,cTrace],layout,
       hovertemplate:"%{y} personal days<extra></extra>"}
   ],{barmode:"stack",bargap:.28,showlegend:false,font,hovermode:"x unified",hoverlabel:hl,
     margin:{l:34,r:8,t:8,b:30},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
-    xaxis:{nticks:9,tickangle:0,showgrid:false,linecolor:"#d7d3c6",fixedrange:true},
+    xaxis:{nticks:9,tickangle:0,showgrid:false,linecolor:"rgba(243,236,223,.25)",fixedrange:true},
     yaxis:{gridcolor:GRID,zeroline:false,fixedrange:true}},cfg);
 
   const tp=top.slice().reverse();
   Plotly.newPlot("an-places",[{type:"bar",orientation:"h",y:tp.map(d=>d[0]),x:tp.map(d=>d[1]),
     marker:{color:PERS},text:tp.map(d=>d[1]),textposition:"outside",cliponaxis:false,
-    textfont:{family:"Inter",size:12,color:INK},hovertemplate:"%{y}: %{x} trips<extra></extra>"}],
+    textfont:{family:"Hanken Grotesk",size:12,color:INK},hovertemplate:"%{y}: %{x} trips<extra></extra>"}],
     {font,hoverlabel:hl,bargap:.38,margin:{l:128,r:28,t:4,b:8},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
-     xaxis:{visible:false,fixedrange:true},yaxis:{fixedrange:true,tickfont:{color:INK}}},cfg);
+     xaxis:{visible:false,fixedrange:true},yaxis:{fixedrange:true,ticksuffix:"  ",tickfont:{color:INK}}},cfg);
 
   const td=topDays.slice().reverse();
   Plotly.newPlot("an-placedays",[{type:"bar",orientation:"h",y:td.map(d=>d[0]),x:td.map(d=>d[1]),
     marker:{color:PERS},text:td.map(d=>d[1]),textposition:"outside",cliponaxis:false,
-    textfont:{family:"Inter",size:12,color:INK},hovertemplate:"%{y}: %{x} days<extra></extra>"}],
+    textfont:{family:"Hanken Grotesk",size:12,color:INK},hovertemplate:"%{y}: %{x} days<extra></extra>"}],
     {font,hoverlabel:hl,bargap:.38,margin:{l:128,r:28,t:4,b:8},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
-     xaxis:{visible:false,fixedrange:true},yaxis:{fixedrange:true,tickfont:{color:INK}}},cfg);
+     xaxis:{visible:false,fixedrange:true},yaxis:{fixedrange:true,ticksuffix:"  ",tickfont:{color:INK}}},cfg);
 
   Plotly.newPlot("an-months",[{type:"bar",x:MON,y:byMonth,marker:{color:PERS},
     hovertemplate:"%{x}: %{y} days<extra></extra>"}],
     {font,hoverlabel:hl,bargap:.32,margin:{l:34,r:8,t:8,b:30},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
-     xaxis:{tickangle:0,tickfont:{size:10.5},showgrid:false,linecolor:"#d7d3c6",fixedrange:true},
+     xaxis:{tickangle:0,tickfont:{size:10.5},showgrid:false,linecolor:"rgba(243,236,223,.25)",fixedrange:true},
      yaxis:{gridcolor:GRID,zeroline:false,fixedrange:true}},cfg);
+})();
+
+// Log filter: show all trips, work only, or personal only
+(function(){
+  const btns=document.querySelectorAll(".filters button"), rows=document.querySelectorAll(".log tbody tr");
+  btns.forEach(b=>b.addEventListener("click",()=>{
+    const f=b.dataset.f;
+    btns.forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
+    let head=null, shown=0;
+    const close=()=>{ if(head) head.hidden=!shown; };
+    rows.forEach(tr=>{
+      if(tr.classList.contains("yr")){ close(); head=tr; shown=0; return; }
+      const hide=f!=="all" && !tr.querySelector(".pill."+f);
+      tr.hidden=hide; if(!hide) shown++;
+    });
+    close();
+  }));
 })();
 </script>
 </body>
 </html>
-
